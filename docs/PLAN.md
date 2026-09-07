@@ -62,10 +62,10 @@
 - Tests: vitest `api.test.ts` + `KanbanBoard.test.tsx` with mocked fetch (15/15); playwright against real backend incl. persist-across-reload (6/6); dev `/api` proxied to local backend via rewrites
 - Success criteria: refresh keeps changes; drag-drop persists via move endpoint (verified local + Docker)
 
-## Part 8: AI connectivity - [ ]
+## Part 8: AI connectivity - [x]
 
-- [ ] Backend `POST /api/ai/test` sends "2+2?" to Zen `/responses` with `muse-spark-1.3-contributor-free` and `reasoning.effort=medium` using `OPENCODE_API_KEY` from `.env`
-- [ ] Use `openai>=1.0` python client with `base_url=https://opencode.ai/zen/v1`
+- [x] Backend `POST /api/ai/test` sends "2+2?" to Zen `/responses` with `muse-spark-1.3-contributor-free` and `reasoning.effort=medium` using `OPENCODE_API_KEY` from `.env`
+- [x] Use `openai>=1.0` python client with `base_url=https://opencode.ai/zen/v1`
 - Tests: `pytest backend/tests/test_ai_zen.py` asserts answer contains 4; 401/429 logged without leaking key
 - Success criteria: 2+2 test passes locally and in Docker
 

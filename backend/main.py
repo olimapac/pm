@@ -1,7 +1,11 @@
 from pathlib import Path
 
+import logging
+import os
+
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from openai import APIStatusError, AuthenticationError, OpenAI, RateLimitError
 from pydantic import BaseModel
 
 import db
@@ -9,6 +13,11 @@ import db
 app = FastAPI(title="PM MVP")
 
 STATIC_DIR = Path(__file__).parent / "static"
+
+logger = logging.getLogger(__name__)
+
+ZEN_BASE_URL = "https://opencode.ai/zen/v1"
+ZEN_MODEL = "muse-spark-1.3-contributor-free"
 
 db.init_db()
 
@@ -167,6 +176,48 @@ def move_card(body: CardMove):
         return dict(
             conn.execute("SELECT * FROM cards WHERE id=?", (body.card_id,)).fetchone()
         )
+
+
+def get_api_key():
+    key = os.getenv("OPENCODE_API_KEY", "").strip().strip('"').strip("'")
+    if key:
+        return key
+    here = Path(__file__).parent
+    for p in (here / ".env", here.parent / ".env"):
+        try:
+            for line in p.read_text().splitlines():
+                if line.strip().startswith("OPENCODE_API_KEY="):
+                    v = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    if v:
+                        return v
+        except OSError:
+            continue
+    return ""
+
+
+@app.post("/api/ai/test")
+def ai_test():
+    key = get_api_key()
+    if not key:
+        raise HTTPException(500, "OPENCODE_API_KEY not configured")
+    try:
+        client = OpenAI(base_url=ZEN_BASE_URL, api_key=key)
+        resp = client.responses.create(
+            model=ZEN_MODEL, input="2+2?", reasoning={"effort": "medium"}
+        )
+        return {"answer": resp.output_text}
+    except AuthenticationError as e:
+        logger.warning("Zen auth failed: %s", e)
+        raise HTTPException(401, "AI auth failed")
+    except RateLimitError as e:
+        logger.warning("Zen rate limited: %s", e)
+        raise HTTPException(429, "AI rate limited")
+    except APIStatusError as e:
+        logger.warning("Zen API error %s: %s", e.status_code, e)
+        raise HTTPException(e.status_code, "AI request failed")
+    except Exception as e:
+        logger.warning("Zen request failed: %s", type(e).__name__)
+        raise HTTPException(502, "AI request failed")
 
 
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
