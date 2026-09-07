@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { AiSidebar } from "@/components/AiSidebar";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { LoginForm } from "@/components/LoginForm";
 
 export const AuthGate = () => {
   const [authed, setAuthed] = useState(false);
+  const [boardRefresh, setBoardRefresh] = useState(0);
 
   if (!authed) {
     return <LoginForm onLogin={() => setAuthed(true)} />;
@@ -22,7 +24,12 @@ export const AuthGate = () => {
           Log out
         </button>
       </div>
-      <KanbanBoard />
+      <div className="mx-auto flex max-w-[1500px] flex-col gap-6 px-6 lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1">
+          <KanbanBoard refreshSignal={boardRefresh} />
+        </div>
+        <AiSidebar onApplied={() => setBoardRefresh((n) => n + 1)} />
+      </div>
     </div>
   );
 };

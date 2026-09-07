@@ -5,6 +5,7 @@ import {
   createCard,
   deleteCard,
   moveCardTo,
+  sendChat,
 } from "@/lib/api";
 
 const serverBoard = {
@@ -73,6 +74,24 @@ describe("api client", () => {
       headers: { "Content-Type": "application/json" },
       method: "POST",
       body: JSON.stringify({ card_id: 7, to_column_id: 2, to_position: 0 }),
+    });
+  });
+
+  it("sends chat messages with history and returns reply plus applied", async () => {
+    const fetch = vi.fn(
+      async () => ({ ok: true, json: async () => ({ reply: "hi", applied: true }) })
+    );
+    vi.stubGlobal("fetch", fetch);
+
+    const history = [{ role: "user" as const, content: "hello" }];
+    await expect(sendChat("do it", history)).resolves.toEqual({
+      reply: "hi",
+      applied: true,
+    });
+    expect(fetch).toHaveBeenCalledWith("/api/ai/chat", {
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({ message: "do it", history }),
     });
   });
 });

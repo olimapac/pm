@@ -23,8 +23,8 @@ For the MVP, this will run locally (in a docker container)
 - Python FastAPI backend, including serving the static NextJS site at /
 - Everything packaged into a Docker container
 - Use "uv" as the package manager for python in the Docker container
-- Use OpenCode for the AI calls. An OPENCODE_API_KEY is in .env in the project root
-- Use `muse-spark-1.3-contributor-free` via `POST https://opencode.ai/zen/v1/responses` with `reasoning.effort=medium`
+- Use OpenRouter for the AI calls. An OPENROUTER_API_KEY is in .env in the project root
+- Use `openai/gpt-4o-mini` via the OpenAI-compatible API at `https://openrouter.ai/api/v1` (no `reasoning` param, no `text.format=json_schema`; plain "respond with ONLY JSON" instruction, schema enforced server-side)
 - Use SQLite local database for the database, creating a new db if it doesn't exist
 - Start and Stop server scripts for Mac, PC, Linux in scripts/
 

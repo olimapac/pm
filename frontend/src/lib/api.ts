@@ -78,3 +78,18 @@ export const moveCardTo = (
       to_position: toPosition,
     }),
   });
+
+export type ChatMessage = { role: "user" | "assistant"; content: string };
+
+export type ChatResult = { reply: string; applied: boolean };
+
+export const sendChat = async (
+  message: string,
+  history: ChatMessage[] = []
+): Promise<ChatResult> => {
+  const res = await req("/api/ai/chat", {
+    method: "POST",
+    body: JSON.stringify({ message, history }),
+  });
+  return { reply: res.reply, applied: res.applied === true };
+};

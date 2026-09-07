@@ -1,5 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 
+// Wide viewport: the five-column grid needs room beside the AI sidebar;
+// cramped columns break coordinate mouse drags under synthetic events.
+test.use({ viewport: { width: 1920, height: 1080 } });
+
 const columns = (page: Page) => page.locator('[data-testid^="column-"]');
 
 const signIn = async (page: Page) => {
@@ -9,6 +13,39 @@ const signIn = async (page: Page) => {
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(columns(page).first()).toBeVisible();
 };
+
+// Runs first: later tests append cards/rename the column, and the suite
+// shares one dev database, so drag geometry is only pristine here.
+test("moves a card between columns", async ({ page }) => {
+  await signIn(page);
+  const sourceColumn = columns(page).first();
+  const targetColumn = columns(page).nth(1);
+  const cardTitle = await sourceColumn
+    .locator('[data-testid^="card-"]')
+    .first()
+    .getByRole("heading")
+    .textContent();
+  const card = sourceColumn.locator('[data-testid^="card-"]').first();
+  const cardBox = await card.boundingBox();
+  const columnBox = await targetColumn.boundingBox();
+  if (!cardBox || !columnBox) {
+    throw new Error("Unable to resolve drag coordinates.");
+  }
+
+  const fromX = cardBox.x + cardBox.width / 2;
+  const fromY = cardBox.y + cardBox.height / 2;
+  const toX = columnBox.x + columnBox.width / 2;
+  const toY = columnBox.y + 120;
+  // Human-speed gesture: give dnd-kit a frame per move so collisions track.
+  await page.mouse.move(fromX, fromY);
+  await page.mouse.down();
+  for (let i = 1; i <= 12; i++) {
+    await page.mouse.move(fromX + ((toX - fromX) * i) / 12, fromY + ((toY - fromY) * i) / 12);
+    await page.waitForTimeout(80);
+  }
+  await page.mouse.up();
+  await expect(targetColumn.getByText(cardTitle ?? "")).toBeVisible();
+});
 
 test("rejects wrong credentials", async ({ page }) => {
   await page.goto("/");
@@ -66,34 +103,4 @@ test("persists changes across reload", async ({ page }) => {
     "Persisted Title"
   );
   await expect(page.getByText("Persisted card")).toBeVisible();
-});
-
-test("moves a card between columns", async ({ page }) => {
-  await signIn(page);
-  const sourceColumn = columns(page).first();
-  const targetColumn = columns(page).nth(1);
-  const cardTitle = await sourceColumn
-    .locator('[data-testid^="card-"]')
-    .first()
-    .getByRole("heading")
-    .textContent();
-  const card = sourceColumn.locator('[data-testid^="card-"]').first();
-  const cardBox = await card.boundingBox();
-  const columnBox = await targetColumn.boundingBox();
-  if (!cardBox || !columnBox) {
-    throw new Error("Unable to resolve drag coordinates.");
-  }
-
-  await page.mouse.move(
-    cardBox.x + cardBox.width / 2,
-    cardBox.y + cardBox.height / 2
-  );
-  await page.mouse.down();
-  await page.mouse.move(
-    columnBox.x + columnBox.width / 2,
-    columnBox.y + 120,
-    { steps: 12 }
-  );
-  await page.mouse.up();
-  await expect(targetColumn.getByText(cardTitle ?? "")).toBeVisible();
 });

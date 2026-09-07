@@ -16,7 +16,7 @@ import { KanbanCardPreview } from "@/components/KanbanCardPreview";
 import * as api from "@/lib/api";
 import type { BoardData } from "@/lib/kanban";
 
-export const KanbanBoard = () => {
+export const KanbanBoard = ({ refreshSignal = 0 }: { refreshSignal?: number }) => {
   const [board, setBoard] = useState<BoardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export const KanbanBoard = () => {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [refreshSignal]);
 
   const cardsById = useMemo(() => board?.cards ?? {}, [board]);
 
@@ -49,6 +49,7 @@ export const KanbanBoard = () => {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    console.log("DBG dragend", active.id, over?.id ?? "null-over");
     setActiveCardId(null);
 
     if (!over || !board || active.id === over.id) {

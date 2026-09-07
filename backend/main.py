@@ -17,8 +17,8 @@ STATIC_DIR = Path(__file__).parent / "static"
 
 logger = logging.getLogger(__name__)
 
-ZEN_BASE_URL = "https://opencode.ai/zen/v1"
-ZEN_MODEL = "muse-spark-1.3-contributor-free"
+AI_BASE_URL = "https://openrouter.ai/api/v1"
+AI_MODEL = "openai/gpt-4o-mini"
 
 db.init_db()
 
@@ -194,14 +194,14 @@ def move_card(body: CardMove):
 
 
 def get_api_key():
-    key = os.getenv("OPENCODE_API_KEY", "").strip().strip('"').strip("'")
+    key = os.getenv("OPENROUTER_API_KEY", "").strip().strip('"').strip("'")
     if key:
         return key
     here = Path(__file__).parent
     for p in (here / ".env", here.parent / ".env"):
         try:
             for line in p.read_text().splitlines():
-                if line.strip().startswith("OPENCODE_API_KEY="):
+                if line.strip().startswith("OPENROUTER_API_KEY="):
                     v = line.split("=", 1)[1].strip().strip('"').strip("'")
                     if v:
                         return v
@@ -214,24 +214,22 @@ def get_api_key():
 def ai_test():
     key = get_api_key()
     if not key:
-        raise HTTPException(500, "OPENCODE_API_KEY not configured")
+        raise HTTPException(500, "OPENROUTER_API_KEY not configured")
     try:
-        client = OpenAI(base_url=ZEN_BASE_URL, api_key=key)
-        resp = client.responses.create(
-            model=ZEN_MODEL, input="2+2?", reasoning={"effort": "medium"}
-        )
+        client = OpenAI(base_url=AI_BASE_URL, api_key=key)
+        resp = client.responses.create(model=AI_MODEL, input="2+2?")
         return {"answer": resp.output_text}
     except AuthenticationError as e:
-        logger.warning("Zen auth failed: %s", e)
+        logger.warning("AI provider auth failed: %s", e)
         raise HTTPException(401, "AI auth failed")
     except RateLimitError as e:
-        logger.warning("Zen rate limited: %s", e)
+        logger.warning("AI provider rate limited: %s", e)
         raise HTTPException(429, "AI rate limited")
     except APIStatusError as e:
-        logger.warning("Zen API error %s: %s", e.status_code, e)
+        logger.warning("AI provider API error %s: %s", e.status_code, e)
         raise HTTPException(e.status_code, "AI request failed")
     except Exception as e:
-        logger.warning("Zen request failed: %s", type(e).__name__)
+        logger.warning("AI provider request failed: %s", type(e).__name__)
         raise HTTPException(502, "AI request failed")
 
 
@@ -243,9 +241,12 @@ AI_CHAT_INSTRUCTIONS = (
     "with keys 'reply' (short human message in the same language as the user, default Portuguese) "
     "and optionally 'board_patch' (object with 'ops' array). "
     "Omit 'board_patch' when no board change is needed. "
-    "Op shapes: create_card {column_id, title, details?}, update_card {card_id, title?, details?}, "
-    "move_card {card_id, to_column_id, to_position}, delete_card {card_id}, "
-    "rename_column {column_id, title}. to_position is the 0-based index in the target column. "
+    "Each op is a FLAT object with an 'op' discriminator field, one of "
+    "create_card, update_card, move_card, delete_card, rename_column. "
+    'Example: {"op": "create_card", "column_id": 1, "title": "Buy milk", "details": ""}. '
+    "Full shapes: create_card needs column_id (int) + title; update_card needs card_id (int) "
+    "plus title and/or details; move_card needs card_id, to_column_id (int), to_position (int, 0-based); "
+    "delete_card needs card_id; rename_column needs column_id (int) + title. "
     "Create directly in the target column. Only use ids present in the board JSON."
 )
 
@@ -262,16 +263,16 @@ def strip_fences(text):
     return text
 
 
-# NOTE: text.format=json_schema is intentionally NOT used here. Live probes
-# proved constrained decoding destabilizes muse-spark via Zen (runaway garbage,
-# board_patch missing), while a plain "respond with ONLY JSON" instruction
-# returns clean {reply, board_patch}. reasoning is omitted (lowest footprint:
-# "none" is rejected by the model, "minimal" also degenerates with a schema).
+# NOTE: plain "respond with ONLY JSON" instruction, no reasoning param, no
+# text.format=json_schema. Live probes proved constrained decoding + reasoning
+# destabilize the previous model via OpenCode Zen (runaway garbage, missing patch);
+# gpt-4o-mini via OpenRouter returns clean {reply, board_patch} this way, but
+# needs the explicit flat-op example above (else it nests the op as a key).
 # The patch schema is enforced server-side in validate_ops instead.
-def call_zen_chat(board, message, history):
+def call_ai_chat(board, message, history):
     key = get_api_key()
     if not key:
-        raise HTTPException(500, "OPENCODE_API_KEY not configured")
+        raise HTTPException(500, "OPENROUTER_API_KEY not configured")
     conv = ""
     for h in history[-20:]:
         conv += f"{h.get('role', 'user')}: {h.get('content', '')}\n"
@@ -279,9 +280,9 @@ def call_zen_chat(board, message, history):
     instructions = AI_CHAT_INSTRUCTIONS + "\n\nCurrent board JSON:\n" + json.dumps(
         board, ensure_ascii=False
     )
-    client = OpenAI(base_url=ZEN_BASE_URL, api_key=key)
+    client = OpenAI(base_url=AI_BASE_URL, api_key=key)
     resp = client.responses.create(
-        model=ZEN_MODEL,
+        model=AI_MODEL,
         instructions=instructions,
         input=conv,
     )
@@ -429,25 +430,25 @@ def ai_chat(body: ChatRequest):
     with db.get_conn(db.DB_PATH) as conn:
         board = read_board(conn)
     try:
-        data = call_zen_chat(
+        data = call_ai_chat(
             board, body.message, [h.model_dump() for h in body.history]
         )
     except HTTPException:
         raise
     except AuthenticationError as e:
-        logger.warning("Zen auth failed: %s", e)
+        logger.warning("AI provider auth failed: %s", e)
         raise HTTPException(401, "AI auth failed")
     except RateLimitError as e:
-        logger.warning("Zen rate limited: %s", e)
+        logger.warning("AI provider rate limited: %s", e)
         raise HTTPException(429, "AI rate limited")
     except APIStatusError as e:
-        logger.warning("Zen API error %s: %s", e.status_code, e)
+        logger.warning("AI provider API error %s: %s", e.status_code, e)
         raise HTTPException(e.status_code, "AI request failed")
     except json.JSONDecodeError:
-        logger.warning("Zen returned invalid JSON")
+        logger.warning("AI provider returned invalid JSON")
         raise HTTPException(502, "AI request failed")
     except Exception as e:
-        logger.warning("Zen request failed: %s", type(e).__name__)
+        logger.warning("AI provider request failed: %s", type(e).__name__)
         raise HTTPException(502, "AI request failed")
     if not isinstance(data, dict) or not isinstance(data.get("reply"), str):
         raise HTTPException(422, "Invalid AI response schema")

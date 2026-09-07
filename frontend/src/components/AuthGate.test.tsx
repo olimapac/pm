@@ -42,4 +42,34 @@ describe("AuthGate", () => {
     expect(screen.getByPlaceholderText("Username")).toBeVisible();
     expect(screen.queryByTestId("column-1")).not.toBeInTheDocument();
   });
+
+  it("refetches the board when the AI applies changes", async () => {
+    const boardPayload = {
+      id: 1,
+      title: "My Board",
+      columns: [{ id: 1, title: "Backlog", position: 0, cards: [] }],
+    };
+    const fetch = vi.fn(async (url: string) => {
+      if (url.startsWith("/api/ai/chat")) {
+        return {
+          ok: true,
+          json: async () => ({ reply: "created", applied: true, board: boardPayload }),
+        };
+      }
+      return { ok: true, json: async () => boardPayload };
+    });
+    vi.stubGlobal("fetch", fetch);
+    const user = userEvent.setup();
+    render(<AuthGate />);
+    await signIn("user", "password");
+    expect(await screen.findByTestId("column-1")).toBeVisible();
+    const boardCalls = () =>
+      fetch.mock.calls.filter(([url]) => url === "/api/board").length;
+    expect(boardCalls()).toBe(1);
+    expect(screen.getByTestId("ai-sidebar")).toBeVisible();
+    await user.type(screen.getByTestId("ai-input"), "create X");
+    await user.click(screen.getByTestId("ai-send"));
+    expect(await screen.findByText("created")).toBeVisible();
+    await vi.waitFor(() => expect(boardCalls()).toBe(2));
+  });
 });

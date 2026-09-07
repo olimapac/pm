@@ -35,7 +35,7 @@ def card_count():
 def test_create_two_cards(monkeypatch):
     monkeypatch.setattr(
         main,
-        "call_zen_chat",
+        "call_ai_chat",
         lambda board, message, history: {
             "reply": "created",
             "board_patch": {
@@ -58,7 +58,7 @@ def test_create_two_cards(monkeypatch):
 def test_move_card(monkeypatch):
     monkeypatch.setattr(
         main,
-        "call_zen_chat",
+        "call_ai_chat",
         lambda board, message, history: {
             "reply": "moved",
             "board_patch": {
@@ -84,7 +84,7 @@ def test_move_card(monkeypatch):
 def test_edit_card(monkeypatch):
     monkeypatch.setattr(
         main,
-        "call_zen_chat",
+        "call_ai_chat",
         lambda board, message, history: {
             "reply": "edited",
             "board_patch": {
@@ -110,7 +110,7 @@ def test_edit_card(monkeypatch):
 
 def test_noop_reply(monkeypatch):
     monkeypatch.setattr(
-        main, "call_zen_chat", lambda board, message, history: {"reply": "hello"}
+        main, "call_ai_chat", lambda board, message, history: {"reply": "hello"}
     )
     before = card_count()
     r = client.post("/api/ai/chat", json={"message": "hi", "history": []})
@@ -124,7 +124,7 @@ def test_noop_reply(monkeypatch):
 def test_delete_and_rename(monkeypatch):
     monkeypatch.setattr(
         main,
-        "call_zen_chat",
+        "call_ai_chat",
         lambda board, message, history: {
             "reply": "done",
             "board_patch": {
@@ -148,7 +148,7 @@ def test_delete_and_rename(monkeypatch):
 def test_invalid_schema_rejected(monkeypatch):
     monkeypatch.setattr(
         main,
-        "call_zen_chat",
+        "call_ai_chat",
         lambda board, message, history: {
             "reply": "bad",
             "board_patch": {"ops": [{"op": "create_card", "column_id": 999}]},
@@ -161,7 +161,7 @@ def test_invalid_schema_rejected(monkeypatch):
 
 
 def test_malformed_response_rejected(monkeypatch):
-    monkeypatch.setattr(main, "call_zen_chat", lambda board, message, history: {})
+    monkeypatch.setattr(main, "call_ai_chat", lambda board, message, history: {})
     before = card_count()
     r = client.post("/api/ai/chat", json={"message": "bad", "history": []})
     assert r.status_code == 422

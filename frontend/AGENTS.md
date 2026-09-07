@@ -1,16 +1,17 @@
 # Frontend - Kanban Studio
 
-Next.js 16 + React 19 + Tailwind CSS 4. Kanban board persisted via the backend API, frontend-only auth gate, no AI yet.
+Next.js 16 + React 19 + Tailwind CSS 4. Kanban board persisted via the backend API, frontend-only auth gate, AI chat sidebar driving board edits via `POST /api/ai/chat`.
 
 ## Structure
 
 - `src/app/page.tsx` - renders `<AuthGate />`
-- `src/components/AuthGate.tsx` - `authed` state; login form or (logout button + board)
+- `src/components/AuthGate.tsx` - `authed` state; login form or (logout button + board + AI sidebar side by side, `boardRefresh` counter)
+- `src/components/AiSidebar.tsx` - chat history, input, loading/error states; `sendChat` per message, calls `onApplied` when `applied=true` so the board refetches
 - `src/app/layout.tsx` - fonts (Space_Grotesk display, Manrope body), metadata "Kanban Studio"
 - `src/app/globals.css` - Tailwind import + CSS vars for palette (accent-yellow, primary-blue, secondary-purple, navy-dark, gray-text)
 - `src/lib/kanban.ts` - types `Card {id, title, details}`, `Column {id, title, cardIds}`, `BoardData {columns, cards}`; `initialData` with 5 columns (Backlog, Discovery, In Progress, Review, Done) and 8 cards; pure helpers `moveCard(columns, activeId, overId)`, `createId(prefix)`
 - `src/lib/api.ts` - typed `/api/*` client; backend int ids mapped to strings at the boundary
-- `src/components/KanbanBoard.tsx` - loads board from API (`useEffect`), loading/error+retry states, mutations refetch (rename debounced 400ms), drag-drop persists via move endpoint
+- `src/components/KanbanBoard.tsx` - loads board from API (`useEffect` on `refreshSignal`), loading/error+retry states, mutations refetch (rename debounced 400ms), drag-drop persists via move endpoint
 - `src/components/KanbanColumn.tsx` - droppable section, rename via input, SortableContext list, empty-state "Drop a card here", embeds `NewCardForm`
 - `src/components/KanbanCard.tsx` - sortable article with title, details, Remove button
 - `src/components/KanbanCardPreview.tsx` - drag overlay preview (no delete)
@@ -18,7 +19,7 @@ Next.js 16 + React 19 + Tailwind CSS 4. Kanban board persisted via the backend A
 
 ## State
 
-Board and auth live in React state, persisted via the backend API (`AuthGate.authed` stays local). No card editing UI yet (only add/delete, rename columns, drag-drop).
+Board and auth live in React state, persisted via the backend API (`AuthGate.authed` stays local). Chat history lives in `AiSidebar` state; board edits via AI go through `POST /api/ai/chat` + refetch.
 
 ## Auth (fake, frontend-only)
 
@@ -27,6 +28,6 @@ Board and auth live in React state, persisted via the backend API (`AuthGate.aut
 
 ## Tests
 
-- Unit: `vitest run` (jsdom + RTL), files `src/lib/kanban.test.ts`, `src/lib/auth.test.ts`, `src/lib/api.test.ts`, `src/components/KanbanBoard.test.tsx`, `src/components/AuthGate.test.tsx`, config `vitest.config.ts`, setup `src/test/setup.ts`
-- E2E: `playwright test` (chromium only), `tests/kanban.spec.ts` against dev server + local backend (dev `/api` rewrites to `127.0.0.1:8001`), covers auth, load, add, persist-across-reload, drag between columns
-- `data-testid`: `column-<id>`, `card-<id>`
+- Unit: `vitest run` (jsdom + RTL), files `src/lib/kanban.test.ts`, `src/lib/auth.test.ts`, `src/lib/api.test.ts`, `src/components/KanbanBoard.test.tsx`, `src/components/AuthGate.test.tsx`, `src/components/AiSidebar.test.tsx`, config `vitest.config.ts`, setup `src/test/setup.ts`
+- E2E: `playwright test` (chromium only), `tests/kanban.spec.ts` (drag test first on seed geometry + 1920 viewport) and `tests/ai-chat.spec.ts` (skipped while Zen free tier refuses server-side calls) against dev server + local backend (dev `/api` rewrites to `127.0.0.1:8001`), covers auth, load, add, persist-across-reload, drag between columns
+- `data-testid`: `column-<id>`, `card-<id>`, `ai-sidebar`, `ai-input`, `ai-send`, `ai-loading`, `ai-error`
