@@ -29,5 +29,10 @@ Board and auth live in React state, persisted via the backend API (`AuthGate.aut
 ## Tests
 
 - Unit: `vitest run` (jsdom + RTL), files `src/lib/kanban.test.ts`, `src/lib/auth.test.ts`, `src/lib/api.test.ts`, `src/components/KanbanBoard.test.tsx`, `src/components/AuthGate.test.tsx`, `src/components/AiSidebar.test.tsx`, config `vitest.config.ts`, setup `src/test/setup.ts`
-- E2E: `playwright test` (chromium only), `tests/kanban.spec.ts` (drag test first on seed geometry + 1920 viewport) and `tests/ai-chat.spec.ts` (skipped while Zen free tier refuses server-side calls) against dev server + local backend (dev `/api` rewrites to `127.0.0.1:8001`), covers auth, load, add, persist-across-reload, drag between columns
+- E2E: `playwright test` (chromium only), `tests/kanban.spec.ts` (drag test first on seed geometry + 1920 viewport) and `tests/ai-chat.spec.ts` (real LLM via local backend) against dev server + local backend (dev `/api` rewrites to `127.0.0.1:8001`), covers auth, load, add, persist-across-reload, drag between columns, AI chat create
 - `data-testid`: `column-<id>`, `card-<id>`, `ai-sidebar`, `ai-input`, `ai-send`, `ai-loading`, `ai-error`
+
+## Local notes
+
+- E2E needs the backend running locally on `127.0.0.1:8001` (dev `/api` rewrites there); the suite shares that dev database, so reseed by deleting `backend/app.db` for a clean run
+- If the repo path contains `&`, `npm run` breaks on Windows (cmd splits the command); invoke binaries directly instead, e.g. `node node_modules/vitest/vitest.mjs run`
