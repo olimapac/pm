@@ -2,7 +2,7 @@
 
 ## Locked decisions
 
-- AI: `POST https://opencode.ai/zen/v1/responses` with `model=muse-spark-1.3-contributor-free`, `reasoning.effort=medium`, `Authorization: Bearer $OPENCODE_API_KEY` (key in `.env` project root, gitignored)
+- AI: `POST https://opencode.ai/zen/v1/responses` with `model=muse-spark-1.3-contributor-free`, `Authorization: Bearer $OPENCODE_API_KEY` (key in `.env` project root, gitignored). `POST /api/ai/test` uses `reasoning.effort=medium`; `POST /api/ai/chat` omits `reasoning` and `text.format=json_schema` (live evidence: `none` rejected by model, `minimal`+schema degenerates into garbage, schema enforced server-side in `validate_ops` instead)
 - DB: plain local file `backend/app.db` via stdlib `sqlite3`, created + seeded if missing. No volume, no `.env.example`
 - Auth MVP: frontend-only gate (`user` / `password` in React state). Backend Kanban API stays open
 - Docker: single container, multi-stage (Node builds frontend, Python + uv + FastAPI serves static at `/`), port 8000
@@ -69,12 +69,12 @@
 - Tests: `pytest backend/tests/test_ai_zen.py` asserts answer contains 4; 401/429 logged without leaking key
 - Success criteria: 2+2 test passes locally and in Docker
 
-## Part 9: Board-aware AI with Structured Outputs - [ ]
+## Part 9: Board-aware AI with Structured Outputs - [x]
 
-- [ ] Backend `POST /api/ai/chat {message, history}` sends system prompt + current board JSON + history, requests `text.format=json_schema {reply: string, board_patch?: {...}}`
-- [ ] Validate schema, apply patch when present, return `{reply, board, applied}`
-- Tests: pytest with board fixture (create 2 cards, move 1, edit 1, no-op reply); invalid schema rejected without corrupting DB
-- Success criteria: all patch scenarios pass; no-patch input returns reply only
+- [x] Backend `POST /api/ai/chat {message, history}` sends system prompt + current board JSON + history with plain "respond with ONLY JSON" instruction (no `reasoning`, no `text.format=json_schema`; ops: create/update/move/delete card, rename column)
+- [x] Validate ops server-side (`validate_ops`/`apply_patch` in one transaction), apply patch when present, return `{reply, board, applied}`
+- Tests: `pytest backend/tests/test_ai_chat.py` with board fixture (create 2 cards, move 1, edit 1, delete+rename, no-op reply, invalid + malformed rejected with DB unchanged, strip_fences unit)
+- Success criteria: all patch scenarios pass; no-patch input returns reply only; live create + no-op verified locally and in Docker
 
 ## Part 10: AI sidebar widget - [ ]
 
