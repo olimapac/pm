@@ -1,0 +1,48 @@
+{
+  "dialect": "sqlite",
+  "tables": {
+    "users": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+        "username": "TEXT NOT NULL UNIQUE",
+        "password_hash": "TEXT NULL"
+      },
+      "notes": "password_hash reserved for post-MVP auth; MVP login is frontend-only"
+    },
+    "boards": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+        "user_id": "INTEGER NOT NULL UNIQUE REFERENCES users(id)",
+        "title": "TEXT NOT NULL DEFAULT 'My Board'"
+      },
+      "notes": "UNIQUE(user_id) enforces 1 board per user for the MVP"
+    },
+    "columns": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+        "board_id": "INTEGER NOT NULL REFERENCES boards(id)",
+        "title": "TEXT NOT NULL",
+        "position": "INTEGER NOT NULL"
+      },
+      "indexes": ["UNIQUE(board_id, position)"],
+      "notes": "Fixed set per board (5 seeded); MVP allows rename only, no add/delete"
+    },
+    "cards": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+        "column_id": "INTEGER NOT NULL REFERENCES columns(id)",
+        "title": "TEXT NOT NULL",
+        "details": "TEXT NOT NULL DEFAULT ''",
+        "position": "INTEGER NOT NULL"
+      },
+      "indexes": ["INDEX(column_id, position)"],
+      "notes": "position orders cards inside a column; move updates column_id + positions"
+    }
+  },
+  "seed": {
+    "users": [{ "username": "user" }],
+    "boards": [{ "user": "user", "title": "My Board" }],
+    "columns": ["Backlog", "Discovery", "In Progress", "Review", "Done"],
+    "cards": "8 sample cards matching frontend initialData, distributed 2/1/2/1/2"
+  }
+}

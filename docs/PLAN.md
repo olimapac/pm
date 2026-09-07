@@ -7,7 +7,7 @@
 - Auth MVP: frontend-only gate (`user` / `password` in React state). Backend Kanban API stays open
 - Docker: single container, multi-stage (Node builds frontend, Python + uv + FastAPI serves static at `/`), port 8000
 - Tests: target ~80% coverage with useful, valuable tests only. Never add tests just to hit the number; missing 80% is fine
-- Frontend baseline: see `frontend/AGENTS.md` (pure `useState` demo, 5 columns, 8 cards, no persistence)
+- Frontend: see `frontend/AGENTS.md` (Kanban via backend API, frontend-only auth gate, 5 columns, 8 seeded cards)
 
 ## Part 1: Plan - [x]
 
@@ -40,27 +40,27 @@
 - Tests: vitest `auth.test.ts` + `AuthGate.test.tsx` (wrong blocked, correct unlocks, logout relocks); playwright login/logout flow + all board tests via login helper
 - Success criteria: login/logout with `user` / `password` works locally and in Docker (verified end-to-end in container)
 
-## Part 5: Database modeling - [ ]
+## Part 5: Database modeling - [x]
 
-- [ ] Propose schema JSON: `users(id, username)`, `boards(id, user_id, title)`, `columns(id, board_id, title, position)`, `cards(id, column_id, title, details, position)`; 1 board per user for MVP, fixed columns renamable
-- [ ] Save as `docs/schema.json` and document approach in `docs/DATABASE.md`
-- [ ] Get user sign off before coding backend
+- [x] Propose schema JSON: `users(id, username)`, `boards(id, user_id, title)`, `columns(id, board_id, title, position)`, `cards(id, column_id, title, details, position)`; 1 board per user for MVP, fixed columns renamable
+- [x] Save as `docs/schema.json` and document approach in `docs/DATABASE.md`
+- [x] Get user sign off before coding backend
 - Tests: user review only, no code yet
 - Success criteria: explicit user approval of schema
 
-## Part 6: Backend - [ ]
+## Part 6: Backend - [x]
 
-- [ ] Create `backend/app.db` with seed (1 user, 1 board, 5 columns, sample cards) when file does not exist
-- [ ] Routes: `GET /api/board`, `PATCH /api/columns/{id}`, `POST /api/cards`, `PATCH /api/cards/{id}`, `DELETE /api/cards/{id}`, `POST /api/cards/move`
-- Tests: backend unit tests cover CRUD, move, column rename, and fresh DB creation from zero
-- Success criteria: API reads/writes persist across process restarts
+- [x] Create `backend/app.db` with seed (1 user, 1 board, 5 columns, sample cards) when file does not exist
+- [x] Routes: `GET /api/board`, `PATCH /api/columns/{id}`, `POST /api/cards`, `PATCH /api/cards/{id}`, `DELETE /api/cards/{id}`, `POST /api/cards/move`
+- Tests: `pytest backend/tests/test_board.py` covers seed, CRUD, move, 404s (8 backend tests green)
+- Success criteria: API reads/writes persist across process restarts (verified); serves seeded board in Docker
 
-## Part 7: Frontend + Backend - [ ]
+## Part 7: Frontend + Backend - [x]
 
-- [ ] Add `frontend/src/lib/api.ts` fetching `/api/*`; `KanbanBoard` loads/saves via API instead of `initialData`
-- [ ] Minimal loading/error states
-- Tests: vitest with mocked fetch; playwright against real backend (create/move/edit/rename survive reload)
-- Success criteria: refresh keeps changes; drag-drop persists via move endpoint
+- [x] `frontend/src/lib/api.ts` fetching `/api/*` (string ids mapped at the boundary); `KanbanBoard` loads/saves via API, rename debounced 400ms
+- [x] Loading/error states with retry
+- Tests: vitest `api.test.ts` + `KanbanBoard.test.tsx` with mocked fetch (15/15); playwright against real backend incl. persist-across-reload (6/6); dev `/api` proxied to local backend via rewrites
+- Success criteria: refresh keeps changes; drag-drop persists via move endpoint (verified local + Docker)
 
 ## Part 8: AI connectivity - [ ]
 

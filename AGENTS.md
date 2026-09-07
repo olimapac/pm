@@ -30,7 +30,7 @@ For the MVP, this will run locally (in a docker container)
 
 ## Starting Point
 
-A working MVP of the frontend has been built and is already in frontend. This is not yet designed for the Docker setup. It's a pure frontend-only demo.
+A working MVP of the frontend was built in frontend and is now integrated: statically exported, served by the backend, with login gate and API persistence (see Parts 1-7 in docs/PLAN.md).
 
 ## Color Scheme
 
