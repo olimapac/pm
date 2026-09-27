@@ -83,3 +83,11 @@
 - Tests: vitest render/send/loading/error/auto-refresh (`AiSidebar.test.tsx`, `AuthGate` refetch test, `sendChat` client test, 22/22); playwright e2e `tests/ai-chat.spec.ts` creates a card via real LLM without reload; kanban e2e 6/6 (drag test runs first on seed geometry + 1920 viewport, see note)
 - Success criteria: chat creates/edits/moves 1+ cards via LLM (verified live end-to-end) and UI updates automatically on `applied` (verified)
 - Notes: coordinate drag e2e needs room + seed geometry (1920 viewport, drag test first; verified green against dev backend and the prod build served by FastAPI)
+
+## Part 11: Didactic compact UI + LLM trace terminal - [x]
+
+- [x] Compact layout: smaller gaps/paddings/fonts on board header, columns, cards, chat (more screen fit, same palette)
+- [x] Backend `POST /api/ai/chat` returns `meta {model, duration_ms, usage {input/output/total_tokens}, trace [{step, detail, duration_ms}]}` over steps `load_board/build_prompt/llm_call/parse/validate/apply/reload` (`build_chat_prompt` pure helper, `call_ai_chat` returns raw text + usage)
+- [x] Right side split via `AiPanel`: chat on top, dark IDE-style `AiTraceTerminal` below; one block per LLM call with steps, `[llm]` wait highlight, cyan `[prompt] input` box with the exact user message + history sent, final OK line (server/client time + tokens), error blocks, Clear
+- Tests: `pytest backend/tests` (meta/trace/usage passthrough, bad-schema 422, malformed 502, prompt truncation); vitest `api.test.ts` meta passthrough + `AiPanel.test.tsx` + `AiTraceTerminal.test.tsx`
+- Success criteria: live no-op chat verified (in=772, out=6, total=778; 4.5s wait isolated in `llm_call`); rebuilt frontend copied to `backend/static/` and served locally

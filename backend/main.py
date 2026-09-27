@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 import logging
 import os
+import time
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -269,24 +270,36 @@ def strip_fences(text):
 # gpt-4o-mini via OpenRouter returns clean {reply, board_patch} this way, but
 # needs the explicit flat-op example above (else it nests the op as a key).
 # The patch schema is enforced server-side in validate_ops instead.
-def call_ai_chat(board, message, history):
-    key = get_api_key()
-    if not key:
-        raise HTTPException(500, "OPENROUTER_API_KEY not configured")
+def build_chat_prompt(board, message, history):
     conv = ""
     for h in history[-20:]:
         conv += f"{h.get('role', 'user')}: {h.get('content', '')}\n"
     conv += f"user: {message}"
-    instructions = AI_CHAT_INSTRUCTIONS + "\n\nCurrent board JSON:\n" + json.dumps(
-        board, ensure_ascii=False
-    )
+    board_json = json.dumps(board, ensure_ascii=False)
+    instructions = AI_CHAT_INSTRUCTIONS + "\n\nCurrent board JSON:\n" + board_json
+    return instructions, conv, board_json
+
+
+def call_ai_chat(board, message, history):
+    key = get_api_key()
+    if not key:
+        raise HTTPException(500, "OPENROUTER_API_KEY not configured")
+    instructions, conv, _ = build_chat_prompt(board, message, history)
     client = OpenAI(base_url=AI_BASE_URL, api_key=key)
     resp = client.responses.create(
         model=AI_MODEL,
         instructions=instructions,
         input=conv,
     )
-    return json.loads(strip_fences(resp.output_text))
+    usage = resp.usage
+    return {
+        "text": resp.output_text or "",
+        "usage": {
+            "input_tokens": (usage.input_tokens if usage else 0) or 0,
+            "output_tokens": (usage.output_tokens if usage else 0) or 0,
+            "total_tokens": (usage.total_tokens if usage else 0) or 0,
+        },
+    }
 
 
 def validate_ops(ops):
@@ -425,14 +438,57 @@ def apply_patch(conn, ops):
                 raise ValueError("Column not found")
 
 
+def describe_op(op):
+    kind = op["op"]
+    if kind == "create_card":
+        return f"create_card '{op['title']}' -> coluna {op['column_id']}"
+    if kind == "update_card":
+        return f"update_card #{op['card_id']}"
+    if kind == "move_card":
+        return f"move_card #{op['card_id']} -> coluna {op['to_column_id']} @ {op['to_position']}"
+    if kind == "delete_card":
+        return f"delete_card #{op['card_id']}"
+    return f"rename_column #{op['column_id']} '{op['title']}'"
+
+
 @app.post("/api/ai/chat")
 def ai_chat(body: ChatRequest):
+    total_start = time.perf_counter()
+    trace = []
+
+    def record(step, detail, start):
+        trace.append(
+            {
+                "step": step,
+                "detail": detail,
+                "duration_ms": round((time.perf_counter() - start) * 1000, 1),
+            }
+        )
+
+    start = time.perf_counter()
     with db.get_conn(db.DB_PATH) as conn:
         board = read_board(conn)
+    n_cols = len(board["columns"])
+    n_cards = sum(len(c["cards"]) for c in board["columns"])
+    record(
+        "load_board",
+        f"Snapshot do board #{board['id']}: {n_cols} colunas, {n_cards} cards",
+        start,
+    )
+
+    start = time.perf_counter()
+    history = [h.model_dump() for h in body.history]
+    instructions, conv, board_json = build_chat_prompt(board, body.message, history)
+    record(
+        "build_prompt",
+        f"Prompt montado: instrucoes ({len(instructions)} chars) + "
+        f"board JSON ({len(board_json)} chars) + historico ({len(history)} msgs)",
+        start,
+    )
+
+    start = time.perf_counter()
     try:
-        data = call_ai_chat(
-            board, body.message, [h.model_dump() for h in body.history]
-        )
+        result = call_ai_chat(board, body.message, history)
     except HTTPException:
         raise
     except AuthenticationError as e:
@@ -444,24 +500,51 @@ def ai_chat(body: ChatRequest):
     except APIStatusError as e:
         logger.warning("AI provider API error %s: %s", e.status_code, e)
         raise HTTPException(e.status_code, "AI request failed")
-    except json.JSONDecodeError:
-        logger.warning("AI provider returned invalid JSON")
-        raise HTTPException(502, "AI request failed")
     except Exception as e:
         logger.warning("AI provider request failed: %s", type(e).__name__)
+        raise HTTPException(502, "AI request failed")
+    raw_text = result["text"]
+    usage = result["usage"]
+    record(
+        "llm_call",
+        f"POST {AI_BASE_URL}/responses model={AI_MODEL} (a espera e aqui): "
+        f"{len(raw_text)} chars recebidos",
+        start,
+    )
+
+    start = time.perf_counter()
+    try:
+        data = json.loads(strip_fences(raw_text))
+    except json.JSONDecodeError:
+        logger.warning("AI provider returned invalid JSON")
         raise HTTPException(502, "AI request failed")
     if not isinstance(data, dict) or not isinstance(data.get("reply"), str):
         raise HTTPException(422, "Invalid AI response schema")
     patch = data.get("board_patch")
+    n_ops = len(patch["ops"]) if isinstance(patch, dict) and isinstance(patch.get("ops"), list) else 0
+    record(
+        "parse",
+        f"JSON valido ({len(raw_text)} chars): reply + "
+        + (f"board_patch ({n_ops} ops)" if patch is not None else "sem board_patch (só resposta)"),
+        start,
+    )
+
     ops = []
     if patch is not None:
         if not isinstance(patch, dict) or not isinstance(patch.get("ops"), list):
             raise HTTPException(422, "Invalid AI response schema")
+        start = time.perf_counter()
         try:
             ops = validate_ops(patch["ops"])
         except ValueError as e:
             raise HTTPException(422, str(e))
+        record(
+            "validate",
+            f"{len(ops)} ops validadas: " + ", ".join(o["op"] for o in ops),
+            start,
+        )
     applied = False
+    start = time.perf_counter()
     if ops:
         try:
             with db.get_conn(db.DB_PATH) as conn:
@@ -469,9 +552,35 @@ def ai_chat(body: ChatRequest):
         except ValueError as e:
             raise HTTPException(422, str(e))
         applied = True
+        record(
+            "apply",
+            "Transacao SQLite aplicada: " + "; ".join(describe_op(o) for o in ops),
+            start,
+        )
+    else:
+        record("apply", "Nenhuma op: board inalterado", start)
+
+    start = time.perf_counter()
     with db.get_conn(db.DB_PATH) as conn:
         fresh = read_board(conn)
-    return {"reply": data["reply"], "board": fresh, "applied": applied}
+    record("reload", "Board recarregado para a resposta", start)
+
+    return {
+        "reply": data["reply"],
+        "board": fresh,
+        "applied": applied,
+        "meta": {
+            "model": AI_MODEL,
+            "duration_ms": round((time.perf_counter() - total_start) * 1000, 1),
+            "usage": usage,
+            "trace": trace,
+            "prompt": {
+                "instructions": AI_CHAT_INSTRUCTIONS,
+                "board_json": board_json,
+                "input": conv,
+            },
+        },
+    }
 
 
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")

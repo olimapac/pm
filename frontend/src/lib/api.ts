@@ -81,7 +81,33 @@ export const moveCardTo = (
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
-export type ChatResult = { reply: string; applied: boolean };
+export type ChatTraceStep = {
+  step: string;
+  detail: string;
+  duration_ms: number;
+};
+
+export type ChatUsage = {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+};
+
+export type ChatPrompt = {
+  instructions: string;
+  board_json: string;
+  input: string;
+};
+
+export type ChatMeta = {
+  model: string;
+  duration_ms: number;
+  usage: ChatUsage;
+  trace: ChatTraceStep[];
+  prompt: ChatPrompt;
+};
+
+export type ChatResult = { reply: string; applied: boolean; meta?: ChatMeta };
 
 export const sendChat = async (
   message: string,
@@ -91,5 +117,9 @@ export const sendChat = async (
     method: "POST",
     body: JSON.stringify({ message, history }),
   });
-  return { reply: res.reply, applied: res.applied === true };
+  return {
+    reply: res.reply,
+    applied: res.applied === true,
+    meta: (res.meta ?? undefined) as ChatMeta | undefined,
+  };
 };

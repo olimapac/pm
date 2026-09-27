@@ -23,11 +23,11 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[480px] flex-col justify-center px-6 pb-16 pt-12">
-      <div className="rounded-[32px] border border-[var(--stroke)] bg-white/80 p-8 shadow-[var(--shadow)] backdrop-blur">
+      <div className="rounded-[32px] border border-[var(--stroke)] bg-white/80 p-6 shadow-[var(--shadow)] backdrop-blur">
         <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--gray-text)]">
           Single Board Kanban
         </p>
-        <h1 className="mt-3 font-display text-4xl font-semibold text-[var(--navy-dark)]">
+        <h1 className="mt-3 font-display text-3xl font-semibold text-[var(--navy-dark)]">
           Kanban Studio
         </h1>
         <p className="mt-3 text-sm leading-6 text-[var(--gray-text)]">

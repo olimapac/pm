@@ -22,7 +22,7 @@ export const KanbanCard = ({ card, onDelete }: KanbanCardProps) => {
       ref={setNodeRef}
       style={style}
       className={clsx(
-        "rounded-2xl border border-transparent bg-white px-4 py-4 shadow-[0_12px_24px_rgba(3,33,71,0.08)]",
+        "rounded-2xl border border-transparent bg-white px-3 py-2.5 shadow-[0_12px_24px_rgba(3,33,71,0.08)]",
         "transition-all duration-150",
         isDragging && "opacity-60 shadow-[0_18px_32px_rgba(3,33,71,0.16)]"
       )}
@@ -32,10 +32,10 @@ export const KanbanCard = ({ card, onDelete }: KanbanCardProps) => {
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h4 className="font-display text-base font-semibold text-[var(--navy-dark)]">
+          <h4 className="font-display text-sm font-semibold text-[var(--navy-dark)]">
             {card.title}
           </h4>
-          <p className="mt-2 text-sm leading-6 text-[var(--gray-text)]">
+          <p className="mt-1 text-xs leading-5 text-[var(--gray-text)]">
             {card.details}
           </p>
         </div>

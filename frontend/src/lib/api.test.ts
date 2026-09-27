@@ -94,4 +94,26 @@ describe("api client", () => {
       body: JSON.stringify({ message: "do it", history }),
     });
   });
+
+  it("passes through the server trace meta when present", async () => {
+    const meta = {
+      model: "openai/gpt-4o-mini",
+      duration_ms: 1200,
+      usage: { input_tokens: 10, output_tokens: 5, total_tokens: 15 },
+      trace: [{ step: "llm_call", detail: "waited", duration_ms: 1100 }],
+      prompt: { instructions: "do", board_json: "{}", input: "do it" },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ reply: "hi", applied: false, meta }),
+      }))
+    );
+    await expect(sendChat("do it")).resolves.toEqual({
+      reply: "hi",
+      applied: false,
+      meta,
+    });
+  });
 });
