@@ -55,6 +55,10 @@ class ChatRequest(BaseModel):
     history: list[ChatHistoryItem] = []
 
 
+class ApplyRequest(BaseModel):
+    ops: list[dict]
+
+
 def ordered_ids(conn, column_id, exclude=None):
     rows = conn.execute(
         "SELECT id FROM cards WHERE column_id=? ORDER BY position, id",
@@ -543,32 +547,9 @@ def ai_chat(body: ChatRequest):
             f"{len(ops)} ops validadas: " + ", ".join(o["op"] for o in ops),
             start,
         )
-    applied = False
-    start = time.perf_counter()
-    if ops:
-        try:
-            with db.get_conn(db.DB_PATH) as conn:
-                apply_patch(conn, ops)
-        except ValueError as e:
-            raise HTTPException(422, str(e))
-        applied = True
-        record(
-            "apply",
-            "Transacao SQLite aplicada: " + "; ".join(describe_op(o) for o in ops),
-            start,
-        )
-    else:
-        record("apply", "Nenhuma op: board inalterado", start)
-
-    start = time.perf_counter()
-    with db.get_conn(db.DB_PATH) as conn:
-        fresh = read_board(conn)
-    record("reload", "Board recarregado para a resposta", start)
-
     return {
         "reply": data["reply"],
-        "board": fresh,
-        "applied": applied,
+        "board": board,
         "ops": ops,
         "meta": {
             "model": AI_MODEL,
@@ -582,6 +563,18 @@ def ai_chat(body: ChatRequest):
             },
         },
     }
+
+
+@app.post("/api/ai/apply")
+def ai_apply(body: ApplyRequest):
+    try:
+        ops = validate_ops(body.ops)
+        with db.get_conn(db.DB_PATH) as conn:
+            apply_patch(conn, ops)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    with db.get_conn(db.DB_PATH) as conn:
+        return {"board": read_board(conn), "ops": ops}
 
 
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")

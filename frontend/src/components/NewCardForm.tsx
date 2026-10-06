@@ -25,7 +25,7 @@ export const NewCardForm = ({ onAdd }: NewCardFormProps) => {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex min-h-10 items-center gap-2 rounded-lg px-2 text-[13px] font-medium text-muted transition hover:bg-white/70 hover:text-ink"
+        className="flex min-h-10 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted transition hover:bg-white/70 hover:text-ink"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <path d="M12 5v14M5 12h14" />
@@ -44,7 +44,7 @@ export const NewCardForm = ({ onAdd }: NewCardFormProps) => {
         }
         placeholder="Título do cartão"
         aria-label="Título do cartão"
-        className="rounded-lg border border-[#d5dbe4] px-2.5 py-1.5 text-sm font-semibold outline-none focus:border-primary"
+        className="rounded-lg border border-field px-2.5 py-1.5 text-sm font-semibold outline-none focus:border-primary focus:ring-3 focus:ring-primary/20"
         autoFocus
         required
       />
@@ -56,7 +56,7 @@ export const NewCardForm = ({ onAdd }: NewCardFormProps) => {
         placeholder="Detalhes"
         aria-label="Detalhes"
         rows={3}
-        className="resize-none rounded-lg border border-[#d5dbe4] px-2.5 py-1.5 text-[13px] text-ink-3 outline-none focus:border-primary"
+        className="resize-none rounded-lg border border-field px-2.5 py-1.5 text-sm text-ink-3 outline-none focus:border-primary focus:ring-3 focus:ring-primary/20"
       />
       <div className="flex gap-2">
         <button
@@ -71,7 +71,7 @@ export const NewCardForm = ({ onAdd }: NewCardFormProps) => {
             setIsOpen(false);
             setFormState(initialFormState);
           }}
-          className="min-h-8 rounded-lg px-3 text-xs font-medium text-muted transition hover:bg-[#e9ecf2] hover:text-ink"
+          className="min-h-8 rounded-lg px-3 text-xs font-medium text-muted transition hover:bg-hover hover:text-ink"
         >
           Cancelar
         </button>

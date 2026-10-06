@@ -37,6 +37,18 @@ def fake_ai(payload, usage=None):
     }
 
 
+def propose_and_apply(message):
+    before = card_count()
+    r = client.post("/api/ai/chat", json={"message": message, "history": []})
+    assert r.status_code == 200
+    proposed = r.json()
+    assert "applied" not in proposed
+    assert card_count() == before
+    r = client.post("/api/ai/apply", json={"ops": proposed["ops"]})
+    assert r.status_code == 200
+    return r.json()
+
+
 def card_count():
     with get_conn(db.DB_PATH) as conn:
         return conn.execute("SELECT COUNT(*) FROM cards").fetchone()[0]
@@ -58,10 +70,7 @@ def test_create_two_cards(monkeypatch):
             }
         ),
     )
-    r = client.post("/api/ai/chat", json={"message": "create A and B", "history": []})
-    assert r.status_code == 200
-    body = r.json()
-    assert body["applied"] is True
+    body = propose_and_apply("create A and B")
     titles = [c["title"] for col in body["board"]["columns"] for c in col["cards"]]
     assert "A" in titles and "B" in titles
     assert card_count() == 10
@@ -92,10 +101,7 @@ def test_move_card(monkeypatch):
             }
         ),
     )
-    r = client.post("/api/ai/chat", json={"message": "move 1 to Done", "history": []})
-    assert r.status_code == 200
-    body = r.json()
-    assert body["applied"] is True
+    body = propose_and_apply("move 1 to Done")
     done = [c for c in body["board"]["columns"] if c["id"] == 5][0]
     assert done["cards"][0]["id"] == 1
 
@@ -120,10 +126,7 @@ def test_edit_card(monkeypatch):
             }
         ),
     )
-    r = client.post("/api/ai/chat", json={"message": "rename card 1", "history": []})
-    assert r.status_code == 200
-    body = r.json()
-    assert body["applied"] is True
+    propose_and_apply("rename card 1")
     with get_conn(db.DB_PATH) as conn:
         card = conn.execute("SELECT * FROM cards WHERE id=1").fetchone()
     assert card["title"] == "Renamed" and card["details"] == "New details"
@@ -135,7 +138,7 @@ def test_noop_reply(monkeypatch):
     r = client.post("/api/ai/chat", json={"message": "hi", "history": []})
     assert r.status_code == 200
     body = r.json()
-    assert body["applied"] is False
+    assert body["ops"] == []
     assert body["reply"] == "hello"
     assert card_count() == before
 
@@ -156,10 +159,7 @@ def test_delete_and_rename(monkeypatch):
             }
         ),
     )
-    r = client.post("/api/ai/chat", json={"message": "delete 1, rename", "history": []})
-    assert r.status_code == 200
-    body = r.json()
-    assert body["applied"] is True
+    propose_and_apply("delete 1, rename")
     with get_conn(db.DB_PATH) as conn:
         assert conn.execute("SELECT * FROM cards WHERE id=1").fetchone() is None
         col = conn.execute("SELECT * FROM columns WHERE id=1").fetchone()
@@ -237,8 +237,6 @@ def test_meta_trace_and_usage(monkeypatch):
         "llm_call",
         "parse",
         "validate",
-        "apply",
-        "reload",
     ]
     for t in meta["trace"]:
         assert t["duration_ms"] >= 0
@@ -251,7 +249,22 @@ def test_noop_meta_skips_validate(monkeypatch):
     assert r.status_code == 200
     steps = [t["step"] for t in r.json()["meta"]["trace"]]
     assert "validate" not in steps
-    assert r.json()["applied"] is False
+    assert r.json()["ops"] == []
+
+
+def test_apply_rejects_unknown_ids_atomically():
+    before = card_count()
+    r = client.post(
+        "/api/ai/apply",
+        json={
+            "ops": [
+                {"op": "create_card", "column_id": 1, "title": "X"},
+                {"op": "delete_card", "card_id": 999},
+            ]
+        },
+    )
+    assert r.status_code == 422
+    assert card_count() == before
 
 
 def test_build_chat_prompt_truncates_history():

@@ -43,7 +43,7 @@ describe("AuthGate", () => {
     expect(screen.queryByTestId("column-1")).not.toBeInTheDocument();
   });
 
-  it("refetches the board when the AI applies changes", async () => {
+  it("refetches the board only after the AI plan is applied", async () => {
     const boardPayload = {
       id: 1,
       title: "My Board",
@@ -53,7 +53,20 @@ describe("AuthGate", () => {
       if (url.startsWith("/api/ai/chat")) {
         return {
           ok: true,
-          json: async () => ({ reply: "created", applied: true, board: boardPayload }),
+          json: async () => ({
+            reply: "created",
+            board: boardPayload,
+            ops: [{ op: "create_card", column_id: 1, title: "X" }],
+          }),
+        };
+      }
+      if (url.startsWith("/api/ai/apply")) {
+        return {
+          ok: true,
+          json: async () => ({
+            board: boardPayload,
+            ops: [{ op: "create_card", column_id: 1, title: "X", card_id: 5 }],
+          }),
         };
       }
       return { ok: true, json: async () => boardPayload };
@@ -70,6 +83,8 @@ describe("AuthGate", () => {
     await user.type(screen.getByTestId("ai-input"), "create X");
     await user.click(screen.getByTestId("ai-send"));
     expect(await screen.findByText("created")).toBeVisible();
+    expect(boardCalls()).toBe(1);
+    await user.click(screen.getByRole("button", { name: "Aplicar" }));
     await vi.waitFor(() => expect(boardCalls()).toBe(2));
   });
 });

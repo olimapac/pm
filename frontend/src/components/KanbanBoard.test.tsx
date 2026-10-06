@@ -48,7 +48,7 @@ describe("KanbanBoard", () => {
   it("shows an error with retry when the API is down", async () => {
     fetchMock.mockRejectedValueOnce(new Error("down"));
     render(<KanbanBoard />);
-    expect(await screen.findByText(/não foi possível carregar/i)).toBeVisible();
+    expect(await screen.findByText(/não consegui carregar/i)).toBeVisible();
     fetchMock.mockResolvedValueOnce(json(boardWith([])));
     await userEvent.click(screen.getByRole("button", { name: "Tentar de novo" }));
     expect(await screen.findByTestId("column-1")).toBeVisible();
@@ -106,10 +106,62 @@ describe("KanbanBoard", () => {
     render(<KanbanBoard />);
     await screen.findByText("Gone soon");
     const column = getFirstColumn();
-    await userEvent.click(within(column).getByRole("button", { name: /gone soon/i, pressed: false }));
     await userEvent.click(
       within(column).getByRole("button", { name: /remover gone soon/i })
     );
-    expect(fetchMock).toHaveBeenCalledWith("/api/cards/7", expect.objectContaining({ method: "DELETE" }));
+    expect(screen.queryByText("Gone soon", { selector: "h3" })).toBeNull();
+    expect(screen.getByText(/“Gone soon” removido/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Desfazer" })).toHaveFocus();
+    await vi.waitFor(
+      () =>
+        expect(fetchMock).toHaveBeenCalledWith(
+          "/api/cards/7",
+          expect.objectContaining({ method: "DELETE" })
+        ),
+      { timeout: 7000 }
+    );
+  }, 10000);
+
+  it("undoes a delete before it reaches the API", async () => {
+    fetchMock.mockResolvedValueOnce(json(boardWith([card(7, 1, "Keep me")])));
+    render(<KanbanBoard />);
+    await screen.findByText("Keep me");
+    const column = getFirstColumn();
+    await userEvent.click(within(column).getByRole("button", { name: /remover keep me/i }));
+    await userEvent.click(screen.getByRole("button", { name: "Desfazer" }));
+    expect(within(column).getByText("Keep me")).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("explains when a search has no matches", async () => {
+    fetchMock.mockResolvedValueOnce(json(boardWith([card(7, 1, "Alpha")])));
+    const onClear = vi.fn();
+    render(<KanbanBoard query="zzz" onClearQuery={onClear} />);
+    expect(await screen.findByText(/nenhum cartão encontrado/i)).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Limpar busca" }));
+    expect(onClear).toHaveBeenCalled();
+  });
+
+  it("outlines the cards a pending plan will touch", async () => {
+    fetchMock.mockResolvedValueOnce(json(boardWith([card(7, 1, "In plan"), card(8, 1, "Other")])));
+    render(<KanbanBoard planIds={["7"]} />);
+    await screen.findByText("In plan");
+    expect(screen.getByTestId("card-7")).toHaveClass("border-accent");
+    expect(screen.getByTestId("card-8")).not.toHaveClass("border-accent");
+  });
+
+  it("opens the editor when the card body is clicked", async () => {
+    fetchMock.mockResolvedValueOnce(json(boardWith([card(7, 1, "Editable")])));
+    render(<KanbanBoard />);
+    await userEvent.click(await screen.findByRole("button", { name: "Editar Editable" }));
+    expect(screen.getByLabelText("Título")).toHaveValue("Editable");
+  });
+
+  it("exposes a keyboard drag handle per card", async () => {
+    fetchMock.mockResolvedValueOnce(json(boardWith([card(7, 1, "Handle")])));
+    render(<KanbanBoard />);
+    const handle = await screen.findByRole("button", { name: "Mover Handle" });
+    expect(handle).toHaveAttribute("aria-roledescription", "sortable");
+    expect(screen.getByTestId("card-7")).not.toHaveAttribute("role");
   });
 });

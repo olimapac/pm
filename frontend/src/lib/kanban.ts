@@ -1,3 +1,5 @@
+import type { ChatOp, ServerBoard } from "@/lib/api";
+
 export type Card = {
   id: string;
   title: string;
@@ -167,4 +169,48 @@ export const createId = (prefix: string) => {
   const randomPart = Math.random().toString(36).slice(2, 8);
   const timePart = Date.now().toString(36);
   return `${prefix}-${randomPart}${timePart}`;
+};
+
+// Columns and cards share numeric ids in the API, so the drag layer prefixes
+// them; dnd-kit needs every draggable/droppable id to be unique.
+export const dndColumnId = (id: string) => `col-${id}`;
+export const dndCardId = (id: string) => `card-${id}`;
+export const fromDnd = (id: string | number) => String(id).replace(/^(col|card)-/, "");
+
+export type Restore = { index: number; columnId: number; position: number };
+
+// Builds the ops that revert `applied` against the board snapshot taken before
+// it ran. A deleted card comes back as a new card, so `restores` says where to
+// move it once its new id is known.
+export const invertOps = (applied: ChatOp[], before: ServerBoard) => {
+  const locate = (cardId?: number) => {
+    for (const column of before.columns) {
+      const position = column.cards.findIndex((c) => c.id === cardId);
+      if (position !== -1) {
+        return { column, position, card: column.cards[position] };
+      }
+    }
+    return null;
+  };
+  const ops: ChatOp[] = [];
+  const restores: Restore[] = [];
+  for (const op of [...applied].reverse()) {
+    const found = locate(op.card_id);
+    if (op.op === "create_card") {
+      ops.push({ op: "delete_card", card_id: op.card_id });
+    } else if (op.op === "update_card" && found) {
+      ops.push({ op: "update_card", card_id: op.card_id, title: found.card.title, details: found.card.details });
+    } else if (op.op === "move_card" && found) {
+      ops.push({ op: "move_card", card_id: op.card_id, to_column_id: found.column.id, to_position: found.position });
+    } else if (op.op === "delete_card" && found) {
+      restores.push({ index: ops.length, columnId: found.column.id, position: found.position });
+      ops.push({ op: "create_card", column_id: found.column.id, title: found.card.title, details: found.card.details });
+    } else if (op.op === "rename_column") {
+      const column = before.columns.find((c) => c.id === op.column_id);
+      if (column) {
+        ops.push({ op: "rename_column", column_id: column.id, title: column.title });
+      }
+    }
+  }
+  return { ops, restores };
 };

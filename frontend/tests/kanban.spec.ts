@@ -23,7 +23,7 @@ test("moves a card between columns", async ({ page }) => {
   const cardTitle = await sourceColumn
     .locator('[data-testid^="card-"]')
     .first()
-    .locator("h4")
+    .locator("h3")
     .textContent();
   const card = sourceColumn.locator('[data-testid^="card-"]').first();
   const cardBox = await card.boundingBox();

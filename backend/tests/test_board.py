@@ -37,10 +37,10 @@ def test_get_board_shape():
     board = client.get("/api/board").json()
     assert [c["title"] for c in board["columns"]] == [
         "Backlog",
-        "Discovery",
-        "In Progress",
-        "Review",
-        "Done",
+        "Descoberta",
+        "Em andamento",
+        "Revisão",
+        "Concluído",
     ]
     assert [len(c["cards"]) for c in board["columns"]] == [2, 1, 2, 1, 2]
 

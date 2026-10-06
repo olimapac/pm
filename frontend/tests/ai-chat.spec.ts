@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("creates a card via the AI sidebar without manual reload", async ({
+test("creates a card via an applied AI plan without manual reload", async ({
   page,
 }) => {
   test.setTimeout(480_000);
@@ -15,6 +15,7 @@ test("creates a card via the AI sidebar without manual reload", async ({
   await page.getByTestId("ai-input").fill(`Create a card titled '${title}' in Backlog`);
   await page.getByTestId("ai-send").click();
   await expect(page.getByTestId("ai-loading")).toBeVisible();
+  await page.getByRole("button", { name: "Aplicar" }).click({ timeout: 420_000 });
   await expect(
     page.locator('[data-testid^="card-"]', { hasText: title })
   ).toBeVisible({ timeout: 420_000 });

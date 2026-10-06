@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS boards (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL UNIQUE REFERENCES users(id),
-  title TEXT NOT NULL DEFAULT 'My Board'
+  title TEXT NOT NULL DEFAULT 'Meu quadro'
 );
 CREATE TABLE IF NOT EXISTS columns (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,17 +32,17 @@ CREATE TABLE IF NOT EXISTS cards (
 CREATE INDEX IF NOT EXISTS idx_cards_column ON cards(column_id, position);
 """
 
-SEED_COLUMNS = ["Backlog", "Discovery", "In Progress", "Review", "Done"]
+SEED_COLUMNS = ["Backlog", "Descoberta", "Em andamento", "Revisão", "Concluído"]
 
 SEED_CARDS = [
-    (0, "Align roadmap themes", "Draft quarterly themes with impact statements and metrics."),
-    (0, "Gather customer signals", "Review support tags, sales notes, and churn feedback."),
-    (1, "Prototype analytics view", "Sketch initial dashboard layout and key drill-downs."),
-    (2, "Refine status language", "Standardize column labels and tone across the board."),
-    (2, "Design card layout", "Add hierarchy and spacing for scanning dense lists."),
-    (3, "QA micro-interactions", "Verify hover, focus, and loading states."),
-    (4, "Ship marketing page", "Final copy approved and asset pack delivered."),
-    (4, "Close onboarding sprint", "Document release notes and share internally."),
+    (0, "Alinhar temas do roadmap", "Rascunhar temas trimestrais com impacto esperado e métricas."),
+    (0, "Coletar sinais de clientes", "Revisar tags de suporte, notas de vendas e feedback de churn."),
+    (1, "Prototipar visão de analytics", "Esboçar o layout inicial do dashboard e os principais detalhamentos."),
+    (2, "Refinar linguagem de status", "Padronizar rótulos das colunas e o tom em todo o quadro."),
+    (2, "Desenhar layout do cartão", "Hierarquia e espaçamento para leitura rápida de listas densas."),
+    (3, "QA de micro-interações", "Verificar estados de hover, foco e carregamento."),
+    (4, "Publicar página de marketing", "Texto final aprovado e pacote de assets entregue."),
+    (4, "Fechar sprint de onboarding", "Documentar as notas de versão e compartilhar internamente."),
 ]
 
 
@@ -68,7 +68,7 @@ def init_db(path=DB_PATH):
             ).lastrowid
             board_id = conn.execute(
                 "INSERT INTO boards (user_id, title) VALUES (?, ?)",
-                (user_id, "My Board"),
+                (user_id, "Meu quadro"),
             ).lastrowid
             column_ids = [
                 conn.execute(

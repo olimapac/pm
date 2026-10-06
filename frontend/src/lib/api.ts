@@ -1,6 +1,6 @@
 import type { BoardData } from "@/lib/kanban";
 
-type ServerCard = {
+export type ServerCard = {
   id: number;
   column_id: number;
   title: string;
@@ -8,14 +8,14 @@ type ServerCard = {
   position: number;
 };
 
-type ServerColumn = {
+export type ServerColumn = {
   id: number;
   title: string;
   position: number;
   cards: ServerCard[];
 };
 
-type ServerBoard = {
+export type ServerBoard = {
   id: number;
   title: string;
   columns: ServerColumn[];
@@ -118,14 +118,15 @@ export type ChatOp = {
   card_id?: number;
   column_id?: number;
   to_column_id?: number;
+  to_position?: number;
   title?: string | null;
+  details?: string | null;
 };
 
 export type ChatResult = {
   reply: string;
-  applied: boolean;
   ops: ChatOp[];
-  columnTitles: Record<number, string>;
+  board: ServerBoard | null;
   meta?: ChatMeta;
 };
 
@@ -137,12 +138,18 @@ export const sendChat = async (
     method: "POST",
     body: JSON.stringify({ message, history }),
   });
-  const columns: ServerColumn[] = res.board?.columns ?? [];
   return {
     reply: res.reply,
-    applied: res.applied === true,
     ops: res.ops ?? [],
-    columnTitles: Object.fromEntries(columns.map((c) => [c.id, c.title])),
+    board: res.board?.columns ? res.board : null,
     meta: (res.meta ?? undefined) as ChatMeta | undefined,
   };
+};
+
+export const applyOps = async (ops: ChatOp[]): Promise<ChatOp[]> => {
+  const res = await req("/api/ai/apply", {
+    method: "POST",
+    body: JSON.stringify({ ops }),
+  });
+  return res.ops;
 };

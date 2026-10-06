@@ -6,6 +6,7 @@ import {
   deleteCard,
   moveCardTo,
   sendChat,
+  applyOps,
 } from "@/lib/api";
 
 const serverBoard = {
@@ -77,23 +78,18 @@ describe("api client", () => {
     });
   });
 
-  it("sends chat messages with history and returns reply plus applied", async () => {
+  it("sends chat messages with history and returns the proposed plan", async () => {
+    const ops = [{ op: "move_card", card_id: 7, to_column_id: 1, to_position: 0 }];
     const fetch = vi.fn(
-      async () => ({ ok: true, json: async () => ({
-        reply: "hi",
-        applied: true,
-        board: serverBoard,
-        ops: [{ op: "move_card", card_id: 7, to_column_id: 1, to_position: 0 }],
-      }) })
+      async () => ({ ok: true, json: async () => ({ reply: "hi", board: serverBoard, ops }) })
     );
     vi.stubGlobal("fetch", fetch);
 
     const history = [{ role: "user" as const, content: "hello" }];
     await expect(sendChat("do it", history)).resolves.toEqual({
       reply: "hi",
-      applied: true,
-      ops: [{ op: "move_card", card_id: 7, to_column_id: 1, to_position: 0 }],
-      columnTitles: { 1: "Backlog", 2: "Done" },
+      ops,
+      board: serverBoard,
     });
     expect(fetch).toHaveBeenCalledWith("/api/ai/chat", {
       headers: { "Content-Type": "application/json" },
@@ -114,15 +110,29 @@ describe("api client", () => {
       "fetch",
       vi.fn(async () => ({
         ok: true,
-        json: async () => ({ reply: "hi", applied: false, meta }),
+        json: async () => ({ reply: "hi", meta }),
       }))
     );
     await expect(sendChat("do it")).resolves.toEqual({
       reply: "hi",
-      applied: false,
       ops: [],
-      columnTitles: {},
+      board: null,
       meta,
+    });
+  });
+
+  it("applies a plan and returns the applied ops", async () => {
+    const ops = [{ op: "create_card" as const, column_id: 1, title: "X" }];
+    const fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ board: serverBoard, ops: [{ ...ops[0], card_id: 9 }] }),
+    }));
+    vi.stubGlobal("fetch", fetch);
+    await expect(applyOps(ops)).resolves.toEqual([{ ...ops[0], card_id: 9 }]);
+    expect(fetch).toHaveBeenCalledWith("/api/ai/apply", {
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({ ops }),
     });
   });
 });

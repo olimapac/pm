@@ -12,7 +12,12 @@
   --color-muted: #5a6578;
   --color-line: #e3e7ee;
   --color-line-soft: #eef1f5;
+  --color-field: #d5dbe4;
+  --color-chip: #dde2ea;
   --color-canvas: #f3f4f7;
+  --color-subtle: #f8f9fb;
+  --color-track: #f1f3f7;
+  --color-hover: #e9ecf2;
   --color-well: #eaedf2;
   --color-accent: #ecad0a;
   --color-accent-soft: #fdf6e3;
@@ -20,13 +25,64 @@
   --color-primary: #209dd7;
   --color-primary-soft: #e3f2fa;
   --color-primary-text: #13719f;
+  --color-ai-text: #0e5b80;
   --color-secondary: #753991;
   --color-secondary-hover: #642f7c;
   --color-danger: #a3302a;
+  --color-danger-soft: #fbeceb;
+  --color-ok: #2e9b57;
+  --color-ok-text: #1e6b3a;
+  --color-stage-1: #c4cdd9;
+  --color-stage-2: #8fa3bd;
+  --color-on-ink: #c9d6e8;
+  --color-secondary-on-ink: #b06bd0;
+  --color-on-ink-muted: #b9c6d8;
+  --color-on-ink-ok: #7fd3a0;
 }
 
 body {
   background: var(--color-canvas);
   color: var(--color-ink);
+  caret-color: var(--color-primary);
   margin: 0;
+}
+
+::selection {
+  background: rgb(236 173 10 / 0.35);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Text fields draw their own focus ring on the field or its wrapper. */
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+
+@keyframes countdown {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+.countdown {
+  animation-name: countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown { animation: none; }
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-stage-1) transparent;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
