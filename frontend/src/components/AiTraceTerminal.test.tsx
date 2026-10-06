@@ -58,13 +58,13 @@ describe("AiTraceTerminal", () => {
             status: "error",
             startedAt: new Date(),
             clientMs: 50,
-            error: "Could not reach the assistant.",
+            error: "Copiloto inacessível.",
           },
         ]}
         onClear={() => {}}
       />
     );
-    expect(screen.getByText(/Could not reach/)).toBeVisible();
+    expect(screen.getByText(/Copiloto inacessível/)).toBeVisible();
   });
 
   it("clears the trace on button click", async () => {

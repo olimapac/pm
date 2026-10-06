@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import type { ChatMeta } from "@/lib/api";
+import type { ChatMeta, ChatTraceStep } from "@/lib/api";
 
 export type TraceBlock = {
   id: number;
@@ -23,103 +22,187 @@ const STEP_LABELS: Record<string, string> = {
   build_prompt: "prompt",
   llm_call: "llm",
   parse: "parse",
-  validate: "valid",
+  validate: "validate",
   apply: "apply",
   reload: "reload",
 };
 
-const fmtTime = (d: Date) => d.toLocaleTimeString();
+const STEP_COLORS: Record<string, string> = {
+  llm_call: "bg-accent",
+  parse: "bg-primary",
+  validate: "bg-primary",
+  apply: "bg-secondary",
+};
 
-const fmtMs = (ms: number) =>
-  ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
+const stepColor = (step: string) => STEP_COLORS[step] ?? "bg-[#8fa3bd]";
 
-const TraceBlockView = ({ block }: { block: TraceBlock }) => (
-  <div data-testid="ai-trace-block" className="border-b border-white/10 py-1.5 last:border-0">
-    <p className="text-slate-100">
-      <span className="text-[var(--accent-yellow)]">$</span> [{fmtTime(block.startedAt)}]{" "}
-      &quot;{block.message}&quot;
-    </p>
-    <p className="text-slate-400">→ POST /api/ai/chat</p>
-    {block.status === "running" ? (
-      <p data-testid="ai-trace-running" className="animate-pulse text-slate-300">
-        … aguardando a LLM (a espera acontece no passo [llm])
-      </p>
-    ) : null}
-    {block.meta?.trace.map((t) => (
-      <p
+const fmtTime = (d: Date) => d.toLocaleTimeString("pt-BR");
+
+export const fmtMs = (ms: number) =>
+  ms >= 1000
+    ? `${(ms / 1000).toFixed(2).replace(".", ",")} s`
+    : `${Math.round(ms)} ms`;
+
+export const fmtTokens = (n: number) => n.toLocaleString("pt-BR");
+
+export const TraceBar = ({ trace }: { trace: ChatTraceStep[] }) => (
+  <span className="flex h-1 w-full gap-0.5">
+    {trace.map((t) => (
+      <span
         key={t.step}
-        className={
-          t.step === "llm_call" ? "text-[var(--accent-yellow)]" : "text-slate-400"
-        }
-      >
-        [{STEP_LABELS[t.step] ?? t.step}] {t.detail} ({fmtMs(t.duration_ms)})
-      </p>
+        className={`min-w-[3px] rounded-sm ${stepColor(t.step)}`}
+        style={{ flex: `${t.duration_ms} 1 0` }}
+      />
     ))}
-    {block.meta?.prompt ? (
-      <div className="mt-1 rounded-lg border border-cyan-300/30 bg-cyan-950/60 px-2 py-1 text-cyan-200">
-        <p className="font-semibold">[prompt] input:</p>
-        <p className="whitespace-pre-wrap break-words">{block.meta.prompt.input}</p>
-      </div>
-    ) : null}
-    {block.status === "ok" ? (
-      <p className="text-emerald-300">
-        OK em {block.meta ? `${fmtMs(block.meta.duration_ms)} (servidor) / ` : ""}
-        {block.clientMs !== undefined ? `${fmtMs(block.clientMs)} (ida-volta)` : ""}
-        {block.meta
-          ? ` | in=${block.meta.usage.input_tokens} out=${block.meta.usage.output_tokens} total=${block.meta.usage.total_tokens} tokens`
-          : " | meta indisponivel"}
-      </p>
-    ) : null}
-    {block.status === "error" ? (
-      <p className="text-red-400">
-        ERRO: {block.error}
-        {block.clientMs !== undefined ? ` (${fmtMs(block.clientMs)})` : ""}
-      </p>
-    ) : null}
+  </span>
+);
+
+const Stat = ({ label, value }: { label: string; value: string }) => (
+  <div className="rounded-[10px] bg-[#f6f7fa] p-2.5">
+    <p className="text-[11px] text-muted">{label}</p>
+    <p className="mt-0.5 font-mono text-base font-semibold">{value}</p>
   </div>
 );
 
-export const AiTraceTerminal = ({ blocks, onClear }: AiTraceTerminalProps) => {
-  const bodyRef = useRef<HTMLDivElement>(null);
+const Timeline = ({ trace }: { trace: ChatTraceStep[] }) => {
+  const total = trace.reduce((n, t) => n + t.duration_ms, 0) || 1;
+  let acc = 0;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
+        Linha do tempo
+      </p>
+      {trace.map((t) => {
+        const left = (acc / total) * 100;
+        acc += t.duration_ms;
+        return (
+          <div key={t.step}>
+            <div className="grid grid-cols-[64px_minmax(0,1fr)_56px] items-center gap-2">
+              <span className="font-mono text-[11px] text-ink-3">
+                {STEP_LABELS[t.step] ?? t.step}
+              </span>
+              <span className="relative h-2.5 rounded-[3px] bg-[#f1f3f7]">
+                <span
+                  className={`absolute inset-y-0 min-w-[3px] rounded-[3px] ${stepColor(t.step)}`}
+                  style={{ left: `${left}%`, width: `${(t.duration_ms / total) * 100}%` }}
+                />
+              </span>
+              <span className="text-right font-mono text-[11px]">{fmtMs(t.duration_ms)}</span>
+            </div>
+            <p className="ml-[72px] text-[11px] leading-4 text-muted">{t.detail}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
-  useEffect(() => {
-    const el = bodyRef.current;
-    if (el) {
-      el.scrollTop = el.scrollHeight;
-    }
-  }, [blocks]);
+const TraceBlockView = ({ block }: { block: TraceBlock }) => {
+  const meta = block.meta;
+  const llm = meta?.trace.find((t) => t.step === "llm_call");
+  return (
+    <div data-testid="ai-trace-block" className="flex flex-col gap-4">
+      <div>
+        <p className="font-mono text-[11px] text-muted">
+          {fmtTime(block.startedAt)} · POST /api/ai/chat
+        </p>
+        <p className="mt-1 text-[13px] leading-snug text-ink-2">&ldquo;{block.message}&rdquo;</p>
+      </div>
+
+      {block.status === "running" ? (
+        <p data-testid="ai-trace-running" className="animate-pulse text-xs text-accent-text">
+          Aguardando a LLM. A espera acontece no passo llm.
+        </p>
+      ) : null}
+
+      {meta ? (
+        <>
+          <div className="grid grid-cols-3 gap-2">
+            <Stat label="Servidor" value={fmtMs(meta.duration_ms)} />
+            <Stat label="Tokens" value={fmtTokens(meta.usage.total_tokens)} />
+            <Stat
+              label="Na LLM"
+              value={`${llm ? Math.round((llm.duration_ms / meta.duration_ms) * 100) : 0}%`}
+            />
+          </div>
+          <Timeline trace={meta.trace} />
+          <div className="rounded-[10px] bg-ink p-3 font-mono text-[11px] leading-relaxed text-[#c9d6e8]">
+            <p className="mb-1.5 text-accent">$ prompt.input</p>
+            <p className="whitespace-pre-wrap break-words">{meta.prompt.input}</p>
+            <p className="mt-2 text-[#7fd3a0]">
+              ok · in={meta.usage.input_tokens} out={meta.usage.output_tokens} total=
+              {meta.usage.total_tokens} tokens
+              {block.clientMs !== undefined ? ` · ida e volta ${fmtMs(block.clientMs)}` : ""}
+            </p>
+          </div>
+        </>
+      ) : null}
+
+      {block.status === "ok" && !meta ? (
+        <p className="text-xs text-muted">
+          OK{block.clientMs !== undefined ? ` em ${fmtMs(block.clientMs)}` : ""}. Sem metadados de execução.
+        </p>
+      ) : null}
+
+      {block.status === "error" ? (
+        <p className="rounded-[10px] bg-[#fbeceb] px-3 py-2 text-xs text-danger">
+          Erro: {block.error}
+          {block.clientMs !== undefined ? ` (${fmtMs(block.clientMs)})` : ""}
+        </p>
+      ) : null}
+    </div>
+  );
+};
+
+export const AiTraceTerminal = ({ blocks, onClear }: AiTraceTerminalProps) => {
+  const latest = blocks.at(-1);
+  const older = blocks.slice(0, -1).reverse();
 
   return (
-    <section
-      data-testid="ai-trace"
-      className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl bg-[var(--navy-dark)] shadow-[var(--shadow)]"
-    >
-      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-        <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300">
-          LLM trace
-        </h2>
+    <section data-testid="ai-trace" className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+      {latest ? (
+        <TraceBlockView block={latest} />
+      ) : (
+        <p className="text-[13px] leading-relaxed text-muted">
+          Cada chamada à LLM aparece aqui passo a passo: o que o servidor fez,
+          onde esperou, quanto tempo e quantos tokens gastou.
+        </p>
+      )}
+
+      {older.length > 0 ? (
+        <div className="flex flex-col">
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
+            Anteriores
+          </p>
+          {older.map((b) => (
+            <div
+              key={b.id}
+              className="flex items-center gap-2 border-t border-line-soft py-2 text-xs"
+            >
+              <span className="font-mono text-[11px] text-muted">{fmtTime(b.startedAt)}</span>
+              <span className="min-w-0 flex-1 truncate text-ink-2">{b.message}</span>
+              <span className={`font-mono text-[11px] ${b.status === "error" ? "text-danger" : ""}`}>
+                {b.status === "error"
+                  ? "erro"
+                  : b.meta
+                    ? fmtMs(b.meta.duration_ms)
+                    : "…"}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-auto flex justify-end">
         <button
           type="button"
           data-testid="ai-trace-clear"
           onClick={onClear}
           disabled={blocks.length === 0}
-          className="rounded-full border border-white/20 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-300 transition hover:text-white disabled:opacity-40"
+          className="min-h-8 rounded-lg px-3 text-xs font-medium text-muted transition hover:bg-[#e9ecf2] hover:text-ink disabled:opacity-40 disabled:hover:bg-transparent"
         >
-          Clear
+          Limpar execuções
         </button>
-      </div>
-      <div
-        ref={bodyRef}
-        className="min-h-[140px] flex-1 overflow-y-auto px-3 py-1 font-mono text-[11px] leading-5"
-      >
-        {blocks.length === 0 ? (
-          <p className="py-1.5 text-slate-500">
-            Cada chamada a LLM aparece aqui passo a passo: o que o servidor fez,
-            onde esperou, quanto tempo e quantos tokens gastou.
-          </p>
-        ) : (
-          blocks.map((block) => <TraceBlockView key={block.id} block={block} />)
-        )}
       </div>
     </section>
   );

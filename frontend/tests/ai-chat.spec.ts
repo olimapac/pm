@@ -6,9 +6,9 @@ test("creates a card via the AI sidebar without manual reload", async ({
   test.setTimeout(480_000);
   const title = `E2E AI ${Date.now()}`;
   await page.goto("/");
-  await page.getByPlaceholder("Username").fill("user");
-  await page.getByPlaceholder("Password").fill("password");
-  await page.getByRole("button", { name: "Log in" }).click();
+  await page.getByLabel("Usuário").fill("user");
+  await page.getByLabel("Senha").fill("password");
+  await page.getByRole("button", { name: "Entrar no quadro" }).click();
   await expect(page.locator('[data-testid^="column-"]').first()).toBeVisible();
   await expect(page.getByTestId("ai-sidebar")).toBeVisible();
 

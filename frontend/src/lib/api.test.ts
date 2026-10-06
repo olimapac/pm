@@ -79,7 +79,12 @@ describe("api client", () => {
 
   it("sends chat messages with history and returns reply plus applied", async () => {
     const fetch = vi.fn(
-      async () => ({ ok: true, json: async () => ({ reply: "hi", applied: true }) })
+      async () => ({ ok: true, json: async () => ({
+        reply: "hi",
+        applied: true,
+        board: serverBoard,
+        ops: [{ op: "move_card", card_id: 7, to_column_id: 1, to_position: 0 }],
+      }) })
     );
     vi.stubGlobal("fetch", fetch);
 
@@ -87,6 +92,8 @@ describe("api client", () => {
     await expect(sendChat("do it", history)).resolves.toEqual({
       reply: "hi",
       applied: true,
+      ops: [{ op: "move_card", card_id: 7, to_column_id: 1, to_position: 0 }],
+      columnTitles: { 1: "Backlog", 2: "Done" },
     });
     expect(fetch).toHaveBeenCalledWith("/api/ai/chat", {
       headers: { "Content-Type": "application/json" },
@@ -113,6 +120,8 @@ describe("api client", () => {
     await expect(sendChat("do it")).resolves.toEqual({
       reply: "hi",
       applied: false,
+      ops: [],
+      columnTitles: {},
       meta,
     });
   });

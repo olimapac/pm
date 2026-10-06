@@ -385,10 +385,10 @@ def apply_patch(conn, ops):
             position = conn.execute(
                 "SELECT COUNT(*) FROM cards WHERE column_id=?", (op["column_id"],)
             ).fetchone()[0]
-            conn.execute(
+            op["card_id"] = conn.execute(
                 "INSERT INTO cards (column_id, title, details, position) VALUES (?, ?, ?, ?)",
                 (op["column_id"], op["title"], op["details"], position),
-            )
+            ).lastrowid
         elif kind == "update_card":
             card = conn.execute(
                 "SELECT * FROM cards WHERE id=?", (op["card_id"],)
@@ -569,6 +569,7 @@ def ai_chat(body: ChatRequest):
         "reply": data["reply"],
         "board": fresh,
         "applied": applied,
+        "ops": ops,
         "meta": {
             "model": AI_MODEL,
             "duration_ms": round((time.perf_counter() - total_start) * 1000, 1),

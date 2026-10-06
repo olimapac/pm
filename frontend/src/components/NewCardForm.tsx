@@ -20,56 +20,62 @@ export const NewCardForm = ({ onAdd }: NewCardFormProps) => {
     setIsOpen(false);
   };
 
+  if (!isOpen) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="flex min-h-10 items-center gap-2 rounded-lg px-2 text-[13px] font-medium text-muted transition hover:bg-white/70 hover:text-ink"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Adicionar cartão
+      </button>
+    );
+  }
+
   return (
-    <div className="mt-3">
-      {isOpen ? (
-        <form onSubmit={handleSubmit} className="space-y-2">
-          <input
-            value={formState.title}
-            onChange={(event) =>
-              setFormState((prev) => ({ ...prev, title: event.target.value }))
-            }
-            placeholder="Card title"
-            className="w-full rounded-xl border border-[var(--stroke)] bg-white px-3 py-2 text-sm font-medium text-[var(--navy-dark)] outline-none transition focus:border-[var(--primary-blue)]"
-            required
-          />
-          <textarea
-            value={formState.details}
-            onChange={(event) =>
-              setFormState((prev) => ({ ...prev, details: event.target.value }))
-            }
-            placeholder="Details"
-            rows={3}
-            className="w-full resize-none rounded-xl border border-[var(--stroke)] bg-white px-3 py-2 text-sm text-[var(--gray-text)] outline-none transition focus:border-[var(--primary-blue)]"
-          />
-          <div className="flex items-center gap-2">
-            <button
-              type="submit"
-              className="rounded-full bg-[var(--secondary-purple)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:brightness-110"
-            >
-              Add card
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                setFormState(initialFormState);
-              }}
-              className="rounded-full border border-[var(--stroke)] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--gray-text)] transition hover:text-[var(--navy-dark)]"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      ) : (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 rounded-[10px] border border-line bg-white p-3">
+      <input
+        value={formState.title}
+        onChange={(event) =>
+          setFormState((prev) => ({ ...prev, title: event.target.value }))
+        }
+        placeholder="Título do cartão"
+        aria-label="Título do cartão"
+        className="rounded-lg border border-[#d5dbe4] px-2.5 py-1.5 text-sm font-semibold outline-none focus:border-primary"
+        autoFocus
+        required
+      />
+      <textarea
+        value={formState.details}
+        onChange={(event) =>
+          setFormState((prev) => ({ ...prev, details: event.target.value }))
+        }
+        placeholder="Detalhes"
+        aria-label="Detalhes"
+        rows={3}
+        className="resize-none rounded-lg border border-[#d5dbe4] px-2.5 py-1.5 text-[13px] text-ink-3 outline-none focus:border-primary"
+      />
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          className="min-h-8 rounded-lg bg-secondary px-3 text-xs font-semibold text-white transition hover:bg-secondary-hover"
+        >
+          Adicionar
+        </button>
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
-          className="w-full rounded-full border border-dashed border-[var(--stroke)] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--primary-blue)] transition hover:border-[var(--primary-blue)]"
+          onClick={() => {
+            setIsOpen(false);
+            setFormState(initialFormState);
+          }}
+          className="min-h-8 rounded-lg px-3 text-xs font-medium text-muted transition hover:bg-[#e9ecf2] hover:text-ink"
         >
-          Add a card
+          Cancelar
         </button>
-      )}
-    </div>
+      </div>
+    </form>
   );
 };

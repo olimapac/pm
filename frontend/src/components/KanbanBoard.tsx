@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -16,10 +16,23 @@ import { KanbanCardPreview } from "@/components/KanbanCardPreview";
 import * as api from "@/lib/api";
 import type { BoardData } from "@/lib/kanban";
 
-export const KanbanBoard = ({ refreshSignal = 0 }: { refreshSignal?: number }) => {
+const COLUMN_COLORS = ["#c4cdd9", "#8fa3bd", "#209dd7", "#753991", "#ecad0a"];
+
+type KanbanBoardProps = {
+  refreshSignal?: number;
+  query?: string;
+  aiTouched?: Record<string, string>;
+};
+
+export const KanbanBoard = ({
+  refreshSignal = 0,
+  query = "",
+  aiTouched = {},
+}: KanbanBoardProps) => {
   const [board, setBoard] = useState<BoardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const renameTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sensors = useSensors(
@@ -33,7 +46,7 @@ export const KanbanBoard = ({ refreshSignal = 0 }: { refreshSignal?: number }) =
       setError(null);
       setBoard(await api.fetchBoard());
     } catch {
-      setError("Could not load the board. Check the backend and retry.");
+      setError("Não foi possível carregar o quadro. Verifique o backend e tente de novo.");
     }
   };
 
@@ -41,7 +54,14 @@ export const KanbanBoard = ({ refreshSignal = 0 }: { refreshSignal?: number }) =
     load();
   }, [refreshSignal]);
 
-  const cardsById = useMemo(() => board?.cards ?? {}, [board]);
+  const run = async (action: () => Promise<unknown>, message: string) => {
+    try {
+      await action();
+      await load();
+    } catch {
+      setError(message);
+    }
+  };
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveCardId(event.active.id as string);
@@ -67,12 +87,10 @@ export const KanbanBoard = ({ refreshSignal = 0 }: { refreshSignal?: number }) =
       ? targetColumn.cardIds.length
       : targetColumn.cardIds.indexOf(overId);
 
-    try {
-      await api.moveCardTo(activeId, targetColumn.id, toPosition);
-      await load();
-    } catch {
-      setError("Could not move the card. Retry.");
-    }
+    await run(
+      () => api.moveCardTo(activeId, targetColumn.id, toPosition),
+      "Não foi possível mover o cartão. Tente de novo."
+    );
   };
 
   const handleRenameColumn = (columnId: string, title: string) => {
@@ -91,128 +109,132 @@ export const KanbanBoard = ({ refreshSignal = 0 }: { refreshSignal?: number }) =
     }
     renameTimer.current = setTimeout(() => {
       api.renameColumn(columnId, title).catch(() => {
-        setError("Could not rename the column. Reload to sync.");
+        setError("Não foi possível renomear a coluna. Recarregue para sincronizar.");
       });
     }, 400);
   };
 
-  const handleAddCard = async (
-    columnId: string,
-    title: string,
-    details: string
-  ) => {
-    try {
-      await api.createCard(columnId, title, details || "No details yet.");
-      await load();
-    } catch {
-      setError("Could not add the card. Retry.");
-    }
-  };
-
-  const handleDeleteCard = async (columnId: string, cardId: string) => {
-    void columnId;
-    try {
-      await api.deleteCard(cardId);
-      await load();
-    } catch {
-      setError("Could not delete the card. Retry.");
-    }
-  };
-
-  const activeCard = activeCardId ? cardsById[activeCardId] : null;
-
   if (error && !board) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-[1500px] flex-col items-center justify-center gap-4 px-6">
-        <p className="text-sm text-[var(--gray-text)]">{error}</p>
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-sm text-muted">{error}</p>
         <button
           type="button"
           onClick={load}
-          className="rounded-full bg-[var(--secondary-purple)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white"
+          className="min-h-10 rounded-[10px] bg-secondary px-4 text-sm font-semibold text-white hover:bg-secondary-hover"
         >
-          Retry
+          Tentar de novo
         </button>
-      </main>
+      </div>
     );
   }
 
   if (!board) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-[1500px] flex-col items-center justify-center px-6">
-        <p className="text-sm text-[var(--gray-text)]">Loading board…</p>
-      </main>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <p className="text-sm text-muted">Carregando o quadro…</p>
+      </div>
     );
   }
 
+  const q = query.trim().toLowerCase();
+  const matches = (id: string) => {
+    const card = board.cards[id];
+    return !q || `${card.title} ${card.details}`.toLowerCase().includes(q);
+  };
+  const total = Object.keys(board.cards).length;
+  const doneCount = board.columns.at(-1)?.cardIds.length ?? 0;
+  const activeCard = activeCardId ? board.cards[activeCardId] : null;
+  const colorOf = (i: number) => COLUMN_COLORS[i % COLUMN_COLORS.length];
+
   return (
-    <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute left-0 top-0 h-[420px] w-[420px] -translate-x-1/3 -translate-y-1/3 rounded-full bg-[radial-gradient(circle,_rgba(32,157,215,0.25)_0%,_rgba(32,157,215,0.05)_55%,_transparent_70%)]" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-[520px] w-[520px] translate-x-1/4 translate-y-1/4 rounded-full bg-[radial-gradient(circle,_rgba(117,57,145,0.18)_0%,_rgba(117,57,145,0.05)_55%,_transparent_75%)]" />
+    <div className="flex flex-col gap-[18px]">
+      <section className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+            Quadro · {board.columns.length} etapas
+          </p>
+          <h1 className="mt-1 text-[28px] font-semibold tracking-tight">{board.title}</h1>
+        </div>
 
-      <main className="relative mx-auto flex min-h-screen max-w-[1500px] flex-col gap-4 px-4 pb-8 pt-4">
-        <header className="flex flex-col gap-3 rounded-2xl border border-[var(--stroke)] bg-white/80 p-4 shadow-[var(--shadow)] backdrop-blur">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--gray-text)]">
-                Single Board Kanban
-              </p>
-              <h1 className="mt-1.5 font-display text-2xl font-semibold text-[var(--navy-dark)]">
-                Kanban Studio
-              </h1>
-              <p className="mt-1.5 max-w-xl text-xs leading-5 text-[var(--gray-text)]">
-                Keep momentum visible. Rename columns, drag cards between stages,
-                and capture quick notes without getting buried in settings.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--surface)] px-3 py-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--gray-text)]">
-                Focus
-              </p>
-              <p className="mt-1 text-sm font-semibold text-[var(--primary-blue)]">
-                One board. Five columns. Zero clutter.
-              </p>
-            </div>
+        <div className="flex min-w-[280px] flex-[0_1_460px] flex-col gap-2">
+          <div className="flex items-baseline justify-between text-[13px] text-ink-3">
+            <span>
+              <strong className="font-semibold text-ink">
+                {doneCount} de {total}
+              </strong>{" "}
+              cartões em {board.columns.at(-1)?.title}
+            </span>
+            <span className="font-mono text-xs font-semibold text-ink">
+              {total ? Math.round((doneCount / total) * 100) : 0}%
+            </span>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {board.columns.map((column) => (
-              <div
+          <div className="flex h-2 gap-[3px]" role="img" aria-label="Distribuição de cartões por etapa">
+            {board.columns.map((column, i) => (
+              <span
                 key={column.id}
-                className="flex items-center gap-2 rounded-full border border-[var(--stroke)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--navy-dark)]"
-              >
-                <span className="h-2 w-2 rounded-full bg-[var(--accent-yellow)]" />
-                {column.title}
-              </div>
-            ))}
-          </div>
-        </header>
-
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <section className="grid gap-3 lg:grid-cols-5">
-            {board.columns.map((column) => (
-              <KanbanColumn
-                key={column.id}
-                column={column}
-                cards={column.cardIds.map((cardId) => board.cards[cardId])}
-                onRename={handleRenameColumn}
-                onAddCard={handleAddCard}
-                onDeleteCard={handleDeleteCard}
+                className="rounded-[3px]"
+                style={{ flex: `${column.cardIds.length} 1 0`, background: colorOf(i) }}
               />
             ))}
-          </section>
-          <DragOverlay>
-            {activeCard ? (
-              <div className="w-[260px]">
-                <KanbanCardPreview card={activeCard} />
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      </main>
+          </div>
+          <div className="flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-muted">
+            {board.columns.map((column, i) => (
+              <span key={column.id} className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-[2px]" style={{ background: colorOf(i) }} />
+                {column.title} <span className="font-mono text-ink">{column.cardIds.length}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {error ? (
+        <p role="alert" className="rounded-[10px] bg-[#fbeceb] px-3 py-2 text-[13px] text-danger">
+          {error}
+        </p>
+      ) : null}
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="overflow-x-auto pb-1">
+          <div className="grid grid-cols-[repeat(5,minmax(228px,1fr))] items-start gap-3">
+            {board.columns.map((column, i) => (
+              <KanbanColumn
+                key={column.id}
+                column={{ ...column, cardIds: column.cardIds.filter(matches) }}
+                index={i}
+                color={colorOf(i)}
+                cards={column.cardIds.filter(matches).map((id) => board.cards[id])}
+                aiTouched={aiTouched}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onRename={handleRenameColumn}
+                onAddCard={(columnId, title, details) =>
+                  run(() => api.createCard(columnId, title, details), "Não foi possível adicionar o cartão. Tente de novo.")
+                }
+                onDeleteCard={(cardId) =>
+                  run(() => api.deleteCard(cardId), "Não foi possível remover o cartão. Tente de novo.")
+                }
+                onSaveCard={(cardId, title, details) =>
+                  run(() => api.updateCard(cardId, title, details), "Não foi possível salvar o cartão. Tente de novo.")
+                }
+              />
+            ))}
+          </div>
+        </div>
+        <DragOverlay>
+          {activeCard ? (
+            <div className="w-[240px]">
+              <KanbanCardPreview card={activeCard} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 };

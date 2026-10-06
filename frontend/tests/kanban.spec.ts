@@ -8,9 +8,9 @@ const columns = (page: Page) => page.locator('[data-testid^="column-"]');
 
 const signIn = async (page: Page) => {
   await page.goto("/");
-  await page.getByPlaceholder("Username").fill("user");
-  await page.getByPlaceholder("Password").fill("password");
-  await page.getByRole("button", { name: "Log in" }).click();
+  await page.getByLabel("Usuário").fill("user");
+  await page.getByLabel("Senha").fill("password");
+  await page.getByRole("button", { name: "Entrar no quadro" }).click();
   await expect(columns(page).first()).toBeVisible();
 };
 
@@ -23,7 +23,7 @@ test("moves a card between columns", async ({ page }) => {
   const cardTitle = await sourceColumn
     .locator('[data-testid^="card-"]')
     .first()
-    .getByRole("heading")
+    .locator("h4")
     .textContent();
   const card = sourceColumn.locator('[data-testid^="card-"]').first();
   const cardBox = await card.boundingBox();
@@ -49,40 +49,40 @@ test("moves a card between columns", async ({ page }) => {
 
 test("rejects wrong credentials", async ({ page }) => {
   await page.goto("/");
-  await page.getByPlaceholder("Username").fill("user");
-  await page.getByPlaceholder("Password").fill("wrong");
-  await page.getByRole("button", { name: "Log in" }).click();
-  await expect(page.getByText("Invalid credentials")).toBeVisible();
+  await page.getByLabel("Usuário").fill("user");
+  await page.getByLabel("Senha").fill("wrong");
+  await page.getByRole("button", { name: "Entrar no quadro" }).click();
+  await expect(page.getByText("Credenciais inválidas")).toBeVisible();
   await expect(columns(page)).toHaveCount(0);
 });
 
 test("logs in and out", async ({ page }) => {
   await signIn(page);
-  await page.getByRole("button", { name: "Log out" }).click();
-  await expect(page.getByPlaceholder("Username")).toBeVisible();
+  await page.getByRole("button", { name: "Sair" }).click();
+  await expect(page.getByLabel("Usuário")).toBeVisible();
   await expect(columns(page)).toHaveCount(0);
 });
 
 test("loads the kanban board", async ({ page }) => {
   await signIn(page);
-  await expect(page.getByRole("heading", { name: "Kanban Studio" })).toBeVisible();
+  await expect(page.getByText("Kanban Studio")).toBeVisible();
   await expect(columns(page)).toHaveCount(5);
 });
 
 test("adds a card to a column", async ({ page }) => {
   await signIn(page);
   const firstColumn = columns(page).first();
-  await firstColumn.getByRole("button", { name: /add a card/i }).click();
-  await firstColumn.getByPlaceholder("Card title").fill("Playwright card");
-  await firstColumn.getByPlaceholder("Details").fill("Added via e2e.");
-  await firstColumn.getByRole("button", { name: /add card/i }).click();
+  await firstColumn.getByRole("button", { name: /adicionar cartão/i }).click();
+  await firstColumn.getByPlaceholder("Título do cartão").fill("Playwright card");
+  await firstColumn.getByPlaceholder("Detalhes").fill("Added via e2e.");
+  await firstColumn.getByRole("button", { name: "Adicionar", exact: true }).click();
   await expect(firstColumn.getByText("Playwright card")).toBeVisible();
 });
 
 test("persists changes across reload", async ({ page }) => {
   await signIn(page);
   const firstColumn = columns(page).first();
-  await firstColumn.getByLabel("Column title").fill("Persisted Title");
+  await firstColumn.getByLabel("Nome da coluna").fill("Persisted Title");
   await expect
     .poll(async () => {
       const board = await page.evaluate(() =>
@@ -91,15 +91,15 @@ test("persists changes across reload", async ({ page }) => {
       return board.columns[0].title;
     })
     .toBe("Persisted Title");
-  await firstColumn.getByRole("button", { name: /add a card/i }).click();
-  await firstColumn.getByPlaceholder("Card title").fill("Persisted card");
-  await firstColumn.getByRole("button", { name: /add card/i }).click();
+  await firstColumn.getByRole("button", { name: /adicionar cartão/i }).click();
+  await firstColumn.getByPlaceholder("Título do cartão").fill("Persisted card");
+  await firstColumn.getByRole("button", { name: "Adicionar", exact: true }).click();
   await expect(firstColumn.getByText("Persisted card")).toBeVisible();
   await page.reload();
-  await page.getByPlaceholder("Username").fill("user");
-  await page.getByPlaceholder("Password").fill("password");
-  await page.getByRole("button", { name: "Log in" }).click();
-  await expect(columns(page).first().getByLabel("Column title")).toHaveValue(
+  await page.getByLabel("Usuário").fill("user");
+  await page.getByLabel("Senha").fill("password");
+  await page.getByRole("button", { name: "Entrar no quadro" }).click();
+  await expect(columns(page).first().getByLabel("Nome da coluna")).toHaveValue(
     "Persisted Title"
   );
   await expect(page.getByText("Persisted card")).toBeVisible();

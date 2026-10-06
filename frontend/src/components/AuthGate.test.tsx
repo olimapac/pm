@@ -19,9 +19,9 @@ beforeEach(() => {
 
 const signIn = async (username: string, password: string) => {
   const user = userEvent.setup();
-  await user.type(screen.getByPlaceholderText("Username"), username);
-  await user.type(screen.getByPlaceholderText("Password"), password);
-  await user.click(screen.getByRole("button", { name: "Log in" }));
+  await user.type(screen.getByLabelText("Usuário"), username);
+  await user.type(screen.getByLabelText("Senha"), password);
+  await user.click(screen.getByRole("button", { name: "Entrar no quadro" }));
   return user;
 };
 
@@ -38,8 +38,8 @@ describe("AuthGate", () => {
     render(<AuthGate />);
     await signIn("user", "password");
     expect(screen.getByTestId("column-1")).toBeVisible();
-    await user.click(screen.getByRole("button", { name: "Log out" }));
-    expect(screen.getByPlaceholderText("Username")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Sair" }));
+    expect(screen.getByLabelText("Usuário")).toBeVisible();
     expect(screen.queryByTestId("column-1")).not.toBeInTheDocument();
   });
 

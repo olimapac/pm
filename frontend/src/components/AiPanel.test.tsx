@@ -56,6 +56,6 @@ describe("AiPanel", () => {
     expect(await screen.findByTestId("ai-error")).toBeVisible();
     const block = await screen.findByTestId("ai-trace-block");
     expect(block).toBeVisible();
-    expect(within(block).getByText(/Could not reach/)).toBeVisible();
+    expect(within(block).getByText(/Copiloto inacessível/)).toBeVisible();
   });
 });

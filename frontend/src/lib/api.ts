@@ -43,7 +43,7 @@ export const fetchBoard = async (): Promise<BoardData> => {
     });
     return { id: String(c.id), title: c.title, cardIds };
   });
-  return { columns, cards };
+  return { title: board.title, columns, cards };
 };
 
 export const renameColumn = (columnId: string, title: string) =>
@@ -60,6 +60,12 @@ export const createCard = (columnId: string, title: string, details: string) =>
       title,
       details,
     }),
+  });
+
+export const updateCard = (cardId: string, title: string, details: string) =>
+  req(`/api/cards/${cardId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ title, details }),
   });
 
 export const deleteCard = (cardId: string) =>
@@ -107,7 +113,21 @@ export type ChatMeta = {
   prompt: ChatPrompt;
 };
 
-export type ChatResult = { reply: string; applied: boolean; meta?: ChatMeta };
+export type ChatOp = {
+  op: "create_card" | "update_card" | "move_card" | "delete_card" | "rename_column";
+  card_id?: number;
+  column_id?: number;
+  to_column_id?: number;
+  title?: string | null;
+};
+
+export type ChatResult = {
+  reply: string;
+  applied: boolean;
+  ops: ChatOp[];
+  columnTitles: Record<number, string>;
+  meta?: ChatMeta;
+};
 
 export const sendChat = async (
   message: string,
@@ -117,9 +137,12 @@ export const sendChat = async (
     method: "POST",
     body: JSON.stringify({ message, history }),
   });
+  const columns: ServerColumn[] = res.board?.columns ?? [];
   return {
     reply: res.reply,
     applied: res.applied === true,
+    ops: res.ops ?? [],
+    columnTitles: Object.fromEntries(columns.map((c) => [c.id, c.title])),
     meta: (res.meta ?? undefined) as ChatMeta | undefined,
   };
 };

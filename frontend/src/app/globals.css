@@ -1,34 +1,32 @@
 @import "tailwindcss";
 
-:root {
-  --accent-yellow: #ecad0a;
-  --primary-blue: #209dd7;
-  --secondary-purple: #753991;
-  --navy-dark: #032147;
-  --gray-text: #888888;
-  --surface: #f7f8fb;
-  --surface-strong: #ffffff;
-  --stroke: rgba(3, 33, 71, 0.08);
-  --shadow: 0 18px 40px rgba(3, 33, 71, 0.12);
-}
-
 @theme inline {
-  --color-background: var(--surface);
-  --color-foreground: var(--navy-dark);
-  --font-sans: var(--font-body);
+  --font-sans: var(--font-geist), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-* {
-  box-sizing: border-box;
+@theme {
+  --color-ink: #032147;
+  --color-ink-2: #1c2b42;
+  --color-ink-3: #3b4a60;
+  --color-muted: #5a6578;
+  --color-line: #e3e7ee;
+  --color-line-soft: #eef1f5;
+  --color-canvas: #f3f4f7;
+  --color-well: #eaedf2;
+  --color-accent: #ecad0a;
+  --color-accent-soft: #fdf6e3;
+  --color-accent-text: #7a5600;
+  --color-primary: #209dd7;
+  --color-primary-soft: #e3f2fa;
+  --color-primary-text: #13719f;
+  --color-secondary: #753991;
+  --color-secondary-hover: #642f7c;
+  --color-danger: #a3302a;
 }
 
 body {
-  background: var(--surface);
-  color: var(--navy-dark);
-  font-family: var(--font-body), "Segoe UI", sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
   margin: 0;
-}
-
-.font-display {
-  font-family: var(--font-display), "Segoe UI", sans-serif;
 }

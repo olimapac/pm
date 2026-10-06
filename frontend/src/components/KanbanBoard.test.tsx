@@ -48,9 +48,9 @@ describe("KanbanBoard", () => {
   it("shows an error with retry when the API is down", async () => {
     fetchMock.mockRejectedValueOnce(new Error("down"));
     render(<KanbanBoard />);
-    expect(await screen.findByText(/could not load/i)).toBeVisible();
+    expect(await screen.findByText(/não foi possível carregar/i)).toBeVisible();
     fetchMock.mockResolvedValueOnce(json(boardWith([])));
-    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await userEvent.click(screen.getByRole("button", { name: "Tentar de novo" }));
     expect(await screen.findByTestId("column-1")).toBeVisible();
   });
 
@@ -58,7 +58,7 @@ describe("KanbanBoard", () => {
     fetchMock.mockResolvedValueOnce(json(boardWith([])));
     render(<KanbanBoard />);
     await screen.findByTestId("column-1");
-    const input = within(getFirstColumn()).getByLabelText("Column title");
+    const input = within(getFirstColumn()).getByLabelText("Nome da coluna");
     fetchMock.mockResolvedValueOnce(json({}));
     await userEvent.clear(input);
     await userEvent.type(input, "Todo");
@@ -81,14 +81,14 @@ describe("KanbanBoard", () => {
     await screen.findByTestId("column-1");
     const column = getFirstColumn();
     await userEvent.click(
-      within(column).getByRole("button", { name: /add a card/i })
+      within(column).getByRole("button", { name: /adicionar cartão/i })
     );
     await userEvent.type(
-      within(column).getByPlaceholderText(/card title/i),
+      within(column).getByPlaceholderText(/título do cartão/i),
       "New card"
     );
     await userEvent.click(
-      within(column).getByRole("button", { name: /add card/i })
+      within(column).getByRole("button", { name: "Adicionar" })
     );
     expect(await within(column).findByText("New card")).toBeVisible();
     expect(fetchMock).toHaveBeenCalledWith(
@@ -106,8 +106,9 @@ describe("KanbanBoard", () => {
     render(<KanbanBoard />);
     await screen.findByText("Gone soon");
     const column = getFirstColumn();
+    await userEvent.click(within(column).getByRole("button", { name: /gone soon/i, pressed: false }));
     await userEvent.click(
-      within(column).getByRole("button", { name: /delete gone soon/i })
+      within(column).getByRole("button", { name: /remover gone soon/i })
     );
     expect(fetchMock).toHaveBeenCalledWith("/api/cards/7", expect.objectContaining({ method: "DELETE" }));
   });

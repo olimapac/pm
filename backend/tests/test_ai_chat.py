@@ -65,6 +65,11 @@ def test_create_two_cards(monkeypatch):
     titles = [c["title"] for col in body["board"]["columns"] for c in col["cards"]]
     assert "A" in titles and "B" in titles
     assert card_count() == 10
+    created = {c["title"]: c["id"] for col in body["board"]["columns"] for c in col["cards"]}
+    assert [(o["op"], o["card_id"]) for o in body["ops"]] == [
+        ("create_card", created["A"]),
+        ("create_card", created["B"]),
+    ]
 
 
 def test_move_card(monkeypatch):
