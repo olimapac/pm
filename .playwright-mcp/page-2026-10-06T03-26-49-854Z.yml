@@ -1,0 +1,159 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e57]
+  - generic [ref=e58]:
+    - banner [ref=e59]:
+      - generic [ref=e60]: Kanban Studio
+      - generic [aria-hidden] [ref=e67]: /
+      - generic [ref=e68]: Meu projeto
+      - generic [ref=e69]:
+        - generic [ref=e73]: Buscar cartões
+        - searchbox "Buscar cartões Ctrl K" [ref=e74]
+        - generic [ref=e75]: Ctrl K
+      - generic [ref=e76]:
+        - generic [aria-hidden] [ref=e77]: U
+        - button "Sair" [ref=e78]
+    - generic [ref=e82]:
+      - main [ref=e83]:
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - paragraph [ref=e87]: Quadro · 5 etapas
+              - heading "My Board" [level=1] [ref=e88]
+            - generic [ref=e89]:
+              - generic [ref=e90]:
+                - generic [ref=e91]:
+                  - strong [ref=e92]: 2 de 9
+                  - text: cartões em Done
+                - generic [ref=e93]: 22%
+              - img "Distribuição de cartões por etapa" [ref=e94]
+              - generic [ref=e100]:
+                - generic [ref=e101]:
+                  - text: Backlog
+                  - generic [ref=e103]: "2"
+                - generic [ref=e104]:
+                  - text: Discovery
+                  - generic [ref=e106]: "2"
+                - generic [ref=e107]:
+                  - text: In Progress
+                  - generic [ref=e109]: "1"
+                - generic [ref=e110]:
+                  - text: Review
+                  - generic [ref=e112]: "2"
+                - generic [ref=e113]:
+                  - text: Done
+                  - generic [ref=e115]: "2"
+          - generic [ref=e117]:
+            - generic [ref=e118]:
+              - generic [ref=e119]:
+                - generic [ref=e120]: "01"
+                - textbox "Nome da coluna" [ref=e122]: Backlog
+                - generic [ref=e123]: "2"
+              - button [ref=e124]:
+                - button "#2 Gather customer signals Review support tags, sales notes, and churn feedback." [ref=e125]:
+                  - generic [ref=e126]: "#2"
+                  - heading "Gather customer signals" [level=4] [ref=e135]
+                  - generic [ref=e136]: Review support tags, sales notes, and churn feedback.
+              - button [ref=e137]:
+                - button "#9 Estudar" [ref=e138]:
+                  - generic [ref=e139]: "#9"
+                  - heading "Estudar" [level=4] [ref=e148]
+              - button "Adicionar cartão" [ref=e149]
+            - generic [ref=e152]:
+              - generic [ref=e153]:
+                - generic [ref=e154]: "02"
+                - textbox "Nome da coluna" [ref=e156]: Discovery
+                - generic [ref=e157]: "2"
+              - button [ref=e158]:
+                - button "#3 Prototype analytics view Sketch initial dashboard layout and key drill-downs." [ref=e159]:
+                  - generic [ref=e160]: "#3"
+                  - heading "Prototype analytics view" [level=4] [ref=e169]
+                  - generic [ref=e170]: Sketch initial dashboard layout and key drill-downs.
+              - button [ref=e171]:
+                - button "#1 Align roadmap themes Draft quarterly themes with impact statements and metrics." [ref=e172]:
+                  - generic [ref=e173]: "#1"
+                  - heading "Align roadmap themes" [level=4] [ref=e182]
+                  - generic [ref=e183]: Draft quarterly themes with impact statements and metrics.
+              - button "Adicionar cartão" [ref=e184]
+            - generic [ref=e187]:
+              - generic [ref=e188]:
+                - generic [ref=e189]: "03"
+                - textbox "Nome da coluna" [ref=e191]: In Progress
+                - generic [ref=e192]: "1"
+              - button [ref=e193]:
+                - button "#4 Refine status language Standardize column labels and tone across the board." [ref=e194]:
+                  - generic [ref=e195]: "#4"
+                  - heading "Refine status language" [level=4] [ref=e204]
+                  - generic [ref=e205]: Standardize column labels and tone across the board.
+              - button "Adicionar cartão" [ref=e206]
+            - generic [ref=e209]:
+              - generic [ref=e210]:
+                - generic [ref=e211]: "04"
+                - textbox "Nome da coluna" [ref=e213]: Review
+                - generic [ref=e214]: "2"
+              - button [ref=e215]:
+                - button "#6 QA micro-interactions Verify hover, focus, and loading states." [ref=e216]:
+                  - generic [ref=e217]: "#6"
+                  - heading "QA micro-interactions" [level=4] [ref=e226]
+                  - generic [ref=e227]: Verify hover, focus, and loading states.
+              - button [ref=e228]:
+                - button "#5 Design card layout Add hierarchy and spacing for scanning dense lists." [ref=e229]:
+                  - generic [ref=e230]: "#5"
+                  - heading "Design card layout" [level=4] [ref=e239]
+                  - generic [ref=e240]: Add hierarchy and spacing for scanning dense lists.
+              - button "Adicionar cartão" [ref=e241]
+            - generic [ref=e244]:
+              - generic [ref=e245]:
+                - generic [ref=e246]: "05"
+                - textbox "Nome da coluna" [ref=e248]: Done
+                - generic [ref=e249]: "2"
+              - button [ref=e250]:
+                - button "#8 Close onboarding sprint Document release notes and share internally." [ref=e251]:
+                  - generic [ref=e252]: "#8"
+                  - heading "Close onboarding sprint" [level=4] [ref=e261]
+                  - generic [ref=e262]: Document release notes and share internally.
+              - button [ref=e263]:
+                - button "#7 Ship marketing page Final copy approved and asset pack delivered." [ref=e264]:
+                  - generic [ref=e265]: "#7"
+                  - heading "Ship marketing page" [level=4] [ref=e274]
+                  - generic [ref=e275]: Final copy approved and asset pack delivered.
+              - button "Adicionar cartão" [ref=e276]
+          - status [ref=e279]
+      - complementary "Copiloto de IA" [ref=e280]:
+        - generic [ref=e281]:
+          - generic [ref=e282]:
+            - generic [ref=e286]:
+              - heading "Copiloto" [level=2] [ref=e287]
+              - paragraph [ref=e288]: openai/gpt-4o-mini · OpenRouter
+            - generic [ref=e289]: Pronto
+          - tablist "Visão do copiloto" [ref=e291]:
+            - tab "Conversa" [selected] [ref=e292]
+            - tab "Execução" [ref=e293]
+        - generic [ref=e295]:
+          - generic [ref=e297]:
+            - paragraph [ref=e298]: Peça em linguagem natural. O copiloto cria, edita e move cartões no quadro.
+            - paragraph [ref=e299]: Sugestões
+            - generic [ref=e300]:
+              - button "O que está parado em Review?" [ref=e301]
+              - button "Divida o primeiro cartão do Backlog em três" [ref=e302]
+              - button "Mova tudo de Review para Done" [ref=e303]
+          - generic [ref=e304]:
+            - generic [ref=e305]: Pergunte ao copiloto
+            - generic [ref=e306]:
+              - textbox "Pergunte ao copiloto" [ref=e307]:
+                - /placeholder: Peça para criar, editar ou mover cartões…
+              - button "Enviar" [disabled] [ref=e308]
+            - paragraph [ref=e311]: Enter envia · Shift+Enter quebra linha
+  - generic: tiny body text
+  - generic: tiny body text
+  - generic: cards flush against the scroller edge
+  - generic [ref=e312]:
+    - generic [ref=e314]:
+      - generic [ref=e315]:
+        - generic [ref=e316]: overused font
+        - generic [ref=e317]: "Primary font: geist (63% of text)"
+      - generic [ref=e318]:
+        - generic [ref=e319]: skipped heading level
+        - generic [ref=e320]: <h1> "My Board" followed by <h4> "Gather customer signals" (missing h2)
+    - generic [ref=e321]:
+      - button "◉" [ref=e322] [cursor=pointer]
+      - button "×" [ref=e323] [cursor=pointer]

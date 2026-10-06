@@ -1,0 +1,153 @@
+- generic [ref=f6e1]:
+  - alert [ref=f6e57]
+  - generic [ref=f6e58]:
+    - banner [ref=f6e59]:
+      - generic [ref=f6e60]: Kanban Studio
+      - generic [ref=f6e67]:
+        - generic [ref=f6e71]: Buscar cartões
+        - searchbox "Buscar cartões Ctrl K" [ref=f6e72]
+        - generic [ref=f6e73]: Ctrl K
+      - generic [ref=f6e74]:
+        - generic [aria-hidden] [ref=f6e75]: U
+        - button "Sair" [ref=f6e76]
+    - generic [ref=f6e80]:
+      - main [ref=f6e81]:
+        - generic [ref=f6e82]:
+          - generic [ref=f6e83]:
+            - heading "Meu quadro" [level=1] [ref=f6e84]
+            - generic [ref=f6e85]:
+              - generic [ref=f6e86]:
+                - generic [ref=f6e87]:
+                  - strong [ref=f6e88]: 2 de 8
+                  - text: cartões em Concluído
+                - generic [ref=f6e89]: 25%
+              - img "Distribuição de cartões por etapa" [ref=f6e90]:
+                - 'generic "Backlog: 2" [ref=f6e91]'
+                - 'generic "Descoberta: 1" [ref=f6e92]'
+                - 'generic "Em andamento: 2" [ref=f6e93]'
+                - 'generic "Revisão: 1" [ref=f6e94]'
+                - 'generic "Concluído: 2" [ref=f6e95]'
+          - generic [ref=f6e97]:
+            - region [ref=f6e98]:
+              - heading "Backlog, 2 cartões" [level=2] [ref=f6e99]
+              - generic [ref=f6e100]:
+                - generic [ref=f6e102]:
+                  - generic [ref=f6e103]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=f6e104]: Backlog
+                - generic [ref=f6e105]: "2"
+              - article [ref=f6e120]:
+                - generic [ref=f6e121]:
+                  - generic [ref=f6e122]: "#2"
+                  - button "Mover Coletar sinais de clientes" [ref=f6e123]
+                - button "Coletar sinais de clientes Revisar tags de suporte, notas de vendas e feedback de churn." [ref=f6e131]:
+                  - heading "Coletar sinais de clientes" [level=3] [ref=f6e132]
+                  - generic [ref=f6e133]: Revisar tags de suporte, notas de vendas e feedback de churn.
+              - article [ref=f6e106]:
+                - generic [ref=f6e107]:
+                  - generic [ref=f6e108]: "#1"
+                  - button "Mover Alinhar temas do roadmap" [active] [ref=f6e109]
+                - button "Alinhar temas do roadmap Rascunhar temas trimestrais com impacto esperado e métricas." [ref=f6e117]:
+                  - heading "Alinhar temas do roadmap" [level=3] [ref=f6e118]
+                  - generic [ref=f6e119]: Rascunhar temas trimestrais com impacto esperado e métricas.
+                - generic [ref=f6e294]:
+                  - button "Editar" [ref=f6e295]
+                  - button "Remover Alinhar temas do roadmap" [ref=f6e298]: Remover
+              - button "Adicionar cartão" [ref=f6e134]
+            - region [ref=f6e137]:
+              - heading "Descoberta, 1 cartões" [level=2] [ref=f6e138]
+              - generic [ref=f6e139]:
+                - generic [ref=f6e141]:
+                  - generic [ref=f6e142]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=f6e143]: Descoberta
+                - generic [ref=f6e144]: "1"
+              - article [ref=f6e145]:
+                - generic [ref=f6e146]:
+                  - generic [ref=f6e147]: "#3"
+                  - button "Mover Prototipar visão de analytics" [ref=f6e148]
+                - button "Prototipar visão de analytics Esboçar o layout inicial do dashboard e os principais detalhamentos." [ref=f6e156]:
+                  - heading "Prototipar visão de analytics" [level=3] [ref=f6e157]
+                  - generic [ref=f6e158]: Esboçar o layout inicial do dashboard e os principais detalhamentos.
+              - button "Adicionar cartão" [ref=f6e159]
+            - region [ref=f6e162]:
+              - heading "Em andamento, 2 cartões" [level=2] [ref=f6e163]
+              - generic [ref=f6e164]:
+                - generic [ref=f6e166]:
+                  - generic [ref=f6e167]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=f6e168]: Em andamento
+                - generic [ref=f6e169]: "2"
+              - article [ref=f6e170]:
+                - generic [ref=f6e171]:
+                  - generic [ref=f6e172]: "#4"
+                  - button "Mover Refinar linguagem de status" [ref=f6e173]
+                - button "Refinar linguagem de status Padronizar rótulos das colunas e o tom em todo o quadro." [ref=f6e181]:
+                  - heading "Refinar linguagem de status" [level=3] [ref=f6e182]
+                  - generic [ref=f6e183]: Padronizar rótulos das colunas e o tom em todo o quadro.
+              - article [ref=f6e184]:
+                - generic [ref=f6e185]:
+                  - generic [ref=f6e186]: "#5"
+                  - button "Mover Desenhar layout do cartão" [ref=f6e187]
+                - button "Desenhar layout do cartão Hierarquia e espaçamento para leitura rápida de listas densas." [ref=f6e195]:
+                  - heading "Desenhar layout do cartão" [level=3] [ref=f6e196]
+                  - generic [ref=f6e197]: Hierarquia e espaçamento para leitura rápida de listas densas.
+              - button "Adicionar cartão" [ref=f6e198]
+            - region [ref=f6e201]:
+              - heading "Revisão, 1 cartões" [level=2] [ref=f6e202]
+              - generic [ref=f6e203]:
+                - generic [ref=f6e205]:
+                  - generic [ref=f6e206]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=f6e207]: Revisão
+                - generic [ref=f6e208]: "1"
+              - article [ref=f6e209]:
+                - generic [ref=f6e210]:
+                  - generic [ref=f6e211]: "#6"
+                  - button "Mover QA de micro-interações" [ref=f6e212]
+                - button "QA de micro-interações Verificar estados de hover, foco e carregamento." [ref=f6e220]:
+                  - heading "QA de micro-interações" [level=3] [ref=f6e221]
+                  - generic [ref=f6e222]: Verificar estados de hover, foco e carregamento.
+              - button "Adicionar cartão" [ref=f6e223]
+            - region [ref=f6e226]:
+              - heading "Concluído, 2 cartões" [level=2] [ref=f6e227]
+              - generic [ref=f6e228]:
+                - generic [ref=f6e230]:
+                  - generic [ref=f6e231]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=f6e232]: Concluído
+                - generic [ref=f6e233]: "2"
+              - article [ref=f6e234]:
+                - generic [ref=f6e235]:
+                  - generic [ref=f6e236]: "#7"
+                  - button "Mover Publicar página de marketing" [ref=f6e237]
+                - button "Publicar página de marketing Texto final aprovado e pacote de assets entregue." [ref=f6e245]:
+                  - heading "Publicar página de marketing" [level=3] [ref=f6e246]
+                  - generic [ref=f6e247]: Texto final aprovado e pacote de assets entregue.
+              - article [ref=f6e248]:
+                - generic [ref=f6e249]:
+                  - generic [ref=f6e250]: "#8"
+                  - button "Mover Fechar sprint de onboarding" [ref=f6e251]
+                - button "Fechar sprint de onboarding Documentar as notas de versão e compartilhar internamente." [ref=f6e259]:
+                  - heading "Fechar sprint de onboarding" [level=3] [ref=f6e260]
+                  - generic [ref=f6e261]: Documentar as notas de versão e compartilhar internamente.
+              - button "Adicionar cartão" [ref=f6e262]
+          - generic [ref=f6e304]:
+            - generic [ref=f6e305]: "#1"
+            - paragraph [ref=f6e315]: Alinhar temas do roadmap
+            - paragraph [ref=f6e316]: Rascunhar temas trimestrais com impacto esperado e métricas.
+          - status [ref=f6e265]: “Alinhar temas do roadmap” solto em Backlog.
+      - complementary "Copiloto de IA" [ref=f6e266]:
+        - generic [ref=f6e267]:
+          - heading "Copiloto" [level=2] [ref=f6e271]
+          - generic [ref=f6e272]: Pronto
+          - button "Recolher copiloto" [expanded] [ref=f6e274]
+        - generic [ref=f6e278]:
+          - generic [ref=f6e280]:
+            - paragraph [ref=f6e281]: Peça em linguagem natural para criar, editar ou mover cartões. Antes de mudar qualquer coisa, eu mostro o plano para você aplicar.
+            - generic [ref=f6e282]:
+              - button "O que está parado em revisão?" [ref=f6e283]
+              - button "Divida o primeiro cartão do Backlog em três" [ref=f6e284]
+              - button "Crie um cartão para revisar a acessibilidade" [ref=f6e285]
+          - generic [ref=f6e286]:
+            - generic [ref=f6e287]: Pedido ao copiloto
+            - generic [ref=f6e288]:
+              - textbox "Pedido ao copiloto" [ref=f6e289]:
+                - /placeholder: Peça para criar, editar ou mover cartões…
+              - button "Enviar pedido" [disabled] [ref=f6e290]
+            - paragraph [ref=f6e293]: Enter envia · Shift+Enter quebra a linha

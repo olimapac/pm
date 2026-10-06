@@ -1,0 +1,96 @@
+- generic [ref=e1]:
+  - alert [ref=e57]
+  - generic [ref=e59]:
+    - banner [ref=e60]:
+      - generic [ref=e61]: Kanban Studio
+      - generic [ref=e68]:
+        - generic [ref=e72]: Buscar cartões
+        - searchbox "Buscar cartões Ctrl K" [active] [ref=e73]: zzzz
+        - generic [ref=e74]: Ctrl K
+      - generic [ref=e75]:
+        - generic [aria-hidden] [ref=e76]: U
+        - button "Sair" [ref=e77]
+    - generic [ref=e81]:
+      - main [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - heading "Meu quadro" [level=1] [ref=e85]
+            - generic [ref=e86]:
+              - generic [ref=e87]:
+                - generic [ref=e88]:
+                  - strong [ref=e89]: 2 de 9
+                  - text: cartões em Concluído
+                - generic [ref=e90]: 22%
+              - img "Distribuição de cartões por etapa" [ref=e91]:
+                - 'generic "Backlog: 3" [ref=e92]'
+                - 'generic "Descoberta: 0"'
+                - 'generic "Em andamento: 2" [ref=e93]'
+                - 'generic "Revisão: 2" [ref=e94]'
+                - 'generic "Concluído: 2" [ref=e95]'
+          - generic [ref=e326]:
+            - generic [ref=e327]:
+              - text: Nenhum cartão encontrado para
+              - strong [ref=e328]: “zzzz”
+              - text: .
+            - button "Limpar busca" [ref=e329]
+          - generic [ref=e97]:
+            - region [ref=e98]:
+              - heading "Backlog, 3 cartões" [level=2] [ref=e99]
+              - generic [ref=e100]:
+                - generic [ref=e102]:
+                  - generic [ref=e103]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=e104]: Backlog
+                - generic [ref=e105]: 0/3
+              - button "Adicionar cartão" [ref=e147]
+            - region [ref=e150]:
+              - heading "Descoberta, 0 cartões" [level=2] [ref=e151]
+              - generic [ref=e152]:
+                - generic [ref=e154]:
+                  - generic [ref=e155]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=e156]: Descoberta
+                - generic [ref=e157]: 0/0
+              - button "Adicionar cartão" [ref=e159]
+            - region [ref=e162]:
+              - heading "Em andamento, 2 cartões" [level=2] [ref=e163]
+              - generic [ref=e164]:
+                - generic [ref=e166]:
+                  - generic [ref=e167]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=e168]: Em andamento
+                - generic [ref=e169]: 0/2
+              - button "Adicionar cartão" [ref=e198]
+            - region [ref=e201]:
+              - heading "Revisão, 2 cartões" [level=2] [ref=e202]
+              - generic [ref=e203]:
+                - generic [ref=e205]:
+                  - generic [ref=e206]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=e207]: Revisão
+                - generic [ref=e208]: 0/2
+              - button "Adicionar cartão" [ref=e237]
+            - region [ref=e240]:
+              - heading "Concluído, 2 cartões" [level=2] [ref=e241]
+              - generic [ref=e242]:
+                - generic [ref=e244]:
+                  - generic [ref=e245]: Nome da coluna
+                  - textbox "Nome da coluna" [ref=e246]: Concluído
+                - generic [ref=e247]: 0/2
+              - button "Adicionar cartão" [ref=e276]
+          - status [ref=e279]: Movimento de “Alinhar temas do roadmap” cancelado.
+      - complementary "Copiloto de IA" [ref=e280]:
+        - generic [ref=e281]:
+          - heading "Copiloto" [level=2] [ref=e285]
+          - generic [ref=e286]: Pronto
+          - button "Recolher copiloto" [expanded] [ref=e288]
+        - generic [ref=e292]:
+          - generic [ref=e294]:
+            - paragraph [ref=e295]: Peça em linguagem natural para criar, editar ou mover cartões. Antes de mudar qualquer coisa, eu mostro o plano para você aplicar.
+            - generic [ref=e296]:
+              - button "O que está parado em revisão?" [ref=e297]
+              - button "Divida o primeiro cartão do Backlog em três" [ref=e298]
+              - button "Crie um cartão para revisar a acessibilidade" [ref=e299]
+          - generic [ref=e300]:
+            - generic [ref=e301]: Pedido ao copiloto
+            - generic [ref=e302]:
+              - textbox "Pedido ao copiloto" [ref=e303]:
+                - /placeholder: Peça para criar, editar ou mover cartões…
+              - button "Enviar pedido" [disabled] [ref=e304]
+            - paragraph [ref=e307]: Enter envia · Shift+Enter quebra a linha

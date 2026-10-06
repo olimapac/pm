@@ -1,0 +1,23 @@
+- generic [ref=f6e2]:
+  - generic [ref=f6e3]:
+    - generic [ref=f6e4]: Kanban Studio
+    - generic [ref=f6e11]:
+      - paragraph [ref=f6e12]: Seu projeto em um quadro.Um copiloto ao lado.
+      - paragraph [ref=f6e13]: Descreva o que precisa mudar. A IA cria, edita e move cartões, e mostra cada passo que deu para chegar lá.
+    - generic [ref=f6e35]:
+      - paragraph [ref=f6e36]: $ “mova o layout do cartão para Revisão”
+      - paragraph [ref=f6e37]: ler quadro · montar pedido · modelo · validar
+      - paragraph [ref=f6e38]: plano pronto · 1 alteração · aplicar?
+  - generic [ref=f6e40]:
+    - generic [ref=f6e41]:
+      - heading "Entrar" [level=1] [ref=f6e42]
+      - paragraph [ref=f6e43]: Acesse o quadro do seu projeto.
+    - generic [ref=f6e44]:
+      - generic [ref=f6e45]: Usuário
+      - textbox "Usuário" [active] [ref=f6e46]
+    - generic [ref=f6e47]:
+      - generic [ref=f6e48]: Senha
+      - textbox "Senha" [ref=f6e49]
+    - button "Entrar no quadro" [ref=f6e50]
+    - paragraph [ref=f6e53]:
+      - generic [ref=f6e56]: "Demo: user / password"
